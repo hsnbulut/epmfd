@@ -2,7 +2,7 @@
 % Please edit documentation in R/misfit_epmfd.R
 \name{misfit_epmfd}
 \alias{misfit_epmfd}
-\title{Compute Person Misfit Statistics}
+\title{Compute person-fit statistics (polytomous)}
 \usage{
 misfit_epmfd(
   object,
@@ -11,15 +11,16 @@ misfit_epmfd(
 )
 }
 \arguments{
-\item{object}{An \code{epmfd_scaled}.}
+\item{object}{An \code{epmfd_scaled} object.}
 
-\item{stats}{"auto", "lpz", "Gp", "Gpn", "U3p".}
+\item{stats}{Character vector: any of \code{"auto"}, \code{"lpz"},
+\code{"Gp"}, \code{"Gpn"}, \code{"U3p"}.}
 
-\item{alpha}{Significance level (0.05).}
+\item{alpha}{Significance level (default 0.05).}
 }
 \value{
-An \code{epmfd_misfit} object with misfit flags.
+An \code{epmfd_misfit} object.
 }
 \description{
-Compute Person Misfit Statistics
+Compute person-fit statistics (polytomous)
 }
