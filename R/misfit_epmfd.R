@@ -15,10 +15,9 @@ misfit_epmfd <- function(object,
   if ("auto" %in% stats) stats <- c("lpz", "Gp", "Gpn", "U3p")
 
   X <- object$raw$data |>
-    dplyr::select(dplyr::all_of(object$kept)) |>
-    as.matrix()
+    dplyr::select(dplyr::all_of(object$kept))
 
-  X[] <- lapply(as.data.frame(X), as.numeric)   # factor >> integer
+  X[] <- lapply(X, as.integer)
   X <- as.matrix(X)
 
   K <- object$raw$K
