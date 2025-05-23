@@ -1,4 +1,3 @@
-# R/scale.R  (veya scale_epmfd.R)
 #' Scale Data via MIRT or Mokken
 #'
 #' @param object  An `epmfd_raw` created by [load_epmfd()].
