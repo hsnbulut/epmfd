@@ -14,7 +14,13 @@ misfit_epmfd <- function(object,
   stats <- match.arg(stats, several.ok = TRUE)
   if ("auto" %in% stats) stats <- c("lpz", "Gp", "Gpn", "U3p")
 
-  X <- object$raw$data |> dplyr::select(dplyr::all_of(object$kept)) |> as.matrix()
+  X <- object$raw$data |>
+    dplyr::select(dplyr::all_of(object$kept)) |>
+    as.matrix()
+
+  X[] <- lapply(as.data.frame(X), as.numeric)   # factor >> integer
+  X <- as.matrix(X)
+
   K <- object$raw$K
 
   # PerFit expects numeric matrix with 0:(K-1)
