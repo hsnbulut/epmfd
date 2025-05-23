@@ -1,6 +1,6 @@
 Package: epmfd
 Title: Robust Person-Misfit Detection Toolkit
-Version: 0.2.5
+Version: 0.2.6
 Authors@R: c(
     person("Hasan", "Bulut",
            email   = "hasan.bulut@omu.edu.tr",
