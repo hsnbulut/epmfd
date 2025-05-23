@@ -1,38 +1,37 @@
-#' Generic plotting for *epmfd* objects
+#' Plot methods for epmfd objects
 #'
-#' Produces an exploratory plot that best fits the supplied object type.
+#' Quick visual summaries for three object classes:
+#' \itemize{
+#'   \item \strong{epmfd_scaled}: item-level summary (kept vs. removed)
+#'         and quality-statistic histogram.
+#'   \item \strong{epmfd_misfit}: misfit counts per statistic
+#'         and overall misfit ratio.
+#'   \item \strong{epmfd_clean}: bar plot of remaining vs. removed persons.
+#' }
 #'
-#' \strong{epmfd_scaled}  – Bar plot of kept vs. removed items and,
-#' where possible, a histogram of the item-quality statistic
-#'   (\\eqn{a} for MIRT, \\eqn{H_i} for Mokken) with its cut-off line.
-#' \strong{epmfd_misfit}  – Bar plot of misfit counts per statistic and
-#' overall misfit ratio.
-#' \strong{epmfd_clean}   – Bar plot showing persons removed vs. remaining.
+#' If the \pkg{patchwork} package is installed, paired plots are stacked
+#' vertically; otherwise a list of two \code{ggplot2} objects is returned.
 #'
-#' If the \pkg{patchwork} package is available, paired plots are combined
-#' vertically; otherwise the function returns a list of individual
-#' \code{ggplot} objects.
+#' @param x   An \code{epmfd_scaled}, \code{epmfd_misfit},
+#'            or \code{epmfd_clean} object.
+#' @param ... Additional aesthetics or layers passed to
+#'            \code{ggplot2} geoms.
 #'
-#' @param x   An object of class \code{epmfd_scaled}, \code{epmfd_misfit},
-#'            or \code{epmfd_clean}.
-#' @param ... Additional layers / aesthetics passed to \code{ggplot2} geoms.
-#' @return    A \code{ggplot} object, or a \code{patchwork} object when
-#'            the package is installed, or a list of plots otherwise.
+#' @return A \code{ggplot2} object, a \code{patchwork} object,
+#'         or a list of \code{ggplot2} objects.
 #'
+#' @name plot_epmfd
 #' @importFrom ggplot2 ggplot aes geom_col geom_text geom_histogram
-#'   geom_vline geom_hline labs theme_minimal
-#' @export
-plot.epmfd.epmfd_scaled  <- function(x, ...) { ... }
-plot.epmfd.epmfd_misfit  <- function(x, ...) { ... }
-plot.epmfd.epmfd_clean   <- function(x, ...) { ... }
+#'   geom_vline labs theme_minimal
+NULL
+# --------------------------------------------------------------------------- #
 
-# ----------------------------------------------------------------------
-# 1) epmfd_scaled -------------------------------------------------------
-# ----------------------------------------------------------------------
+#=========================== epmfd_scaled =====================================
+#' @rdname plot_epmfd
+#' @method plot epmfd_scaled
 #' @export
-plot.epmfd.epmfd_scaled <- function(x, ...) {
+plot.epmfd_scaled <- function(x, ...) {
 
-  # --- bar: kept vs removed -------------------------------------------
   df_bar <- data.frame(
     Status = factor(c("Kept", "Removed"), levels = c("Kept", "Removed")),
     Count  = c(length(x$kept), length(x$removed))
@@ -45,9 +44,8 @@ plot.epmfd.epmfd_scaled <- function(x, ...) {
                   x = NULL, y = "Number of items") +
     ggplot2::theme_minimal()
 
-  # --- histogram of a or Hi -------------------------------------------
   if (x$method == "mirt") {
-    a_vals <- mirt::coef(x$model, IRTpars = TRUE, simplify = TRUE)$items[ , "a"]
+    a_vals <- mirt::coef(x$model, IRTpars = TRUE, simplify = TRUE)$items[, "a"]
     p_hist <- ggplot2::ggplot(data.frame(a = a_vals),
                               ggplot2::aes(a)) +
       ggplot2::geom_histogram(bins = 20, ...) +
@@ -55,7 +53,7 @@ plot.epmfd.epmfd_scaled <- function(x, ...) {
       ggplot2::labs(title = "Discrimination (a) distribution",
                     x = "a", y = "Frequency") +
       ggplot2::theme_minimal()
-  } else {  # mokken
+  } else {
     p_hist <- ggplot2::ggplot(data.frame(Hi = x$Hi),
                               ggplot2::aes(Hi)) +
       ggplot2::geom_histogram(bins = 20, ...) +
@@ -65,24 +63,21 @@ plot.epmfd.epmfd_scaled <- function(x, ...) {
       ggplot2::theme_minimal()
   }
 
-  # --- combine or return list -----------------------------------------
   if (requireNamespace("patchwork", quietly = TRUE)) {
-    return(p_bar / p_hist)   # patchwork syntax
+    return(p_bar / p_hist)
   } else {
     return(list(summary = p_bar, quality = p_hist))
   }
 }
 
-# ----------------------------------------------------------------------
-# 2) epmfd_misfit -------------------------------------------------------
-# ----------------------------------------------------------------------
+#=========================== epmfd_misfit =====================================
+#' @rdname plot_epmfd
+#' @method plot epmfd_misfit
 #' @export
-plot.epmfd.epmfd_misfit <- function(x, ...) {
+plot.epmfd_misfit <- function(x, ...) {
 
-  # bar per statistic
   stat_counts <- sapply(x$stats, function(s) sum(x$table[[s]]))
-  df_stat <- data.frame(Statistic = x$stats,
-                        Misfit    = stat_counts)
+  df_stat  <- data.frame(Statistic = x$stats, Misfit = stat_counts)
 
   p_stat <- ggplot2::ggplot(df_stat,
                             ggplot2::aes(Statistic, Misfit, fill = Statistic)) +
@@ -91,7 +86,6 @@ plot.epmfd.epmfd_misfit <- function(x, ...) {
                   x = NULL, y = "Number of persons") +
     ggplot2::theme_minimal()
 
-  # overall ratio
   ratio <- mean(x$table$misfit_any)
   df_ratio <- data.frame(Status = c("Misfit", "Fit"),
                          Count  = c(sum(x$table$misfit_any),
@@ -101,9 +95,9 @@ plot.epmfd.epmfd_misfit <- function(x, ...) {
                              ggplot2::aes(Status, Count, fill = Status)) +
     ggplot2::geom_col(show.legend = FALSE, ...) +
     ggplot2::geom_text(ggplot2::aes(label = Count), vjust = -0.2) +
-    ggplot2::labs(
-      title = sprintf("Overall misfit ratio = %.1f%%", 100 * ratio),
-      x = NULL, y = "Number of persons") +
+    ggplot2::labs(title = sprintf("Overall misfit ratio = %.1f%%",
+                                  100 * ratio),
+                  x = NULL, y = "Number of persons") +
     ggplot2::theme_minimal()
 
   if (requireNamespace("patchwork", quietly = TRUE)) {
@@ -113,11 +107,11 @@ plot.epmfd.epmfd_misfit <- function(x, ...) {
   }
 }
 
-# ----------------------------------------------------------------------
-# 3) epmfd_clean --------------------------------------------------------
-# ----------------------------------------------------------------------
+#=========================== epmfd_clean ======================================
+#' @rdname plot_epmfd
+#' @method plot epmfd_clean
 #' @export
-plot.epmfd.epmfd_clean <- function(x, ...) {
+plot.epmfd_clean <- function(x, ...) {
 
   df <- data.frame(Group = c("Remaining", "Removed"),
                    Count = c(nrow(x$clean_data), x$n_removed))
