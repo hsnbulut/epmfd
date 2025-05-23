@@ -21,6 +21,7 @@ scale_epmfd <- function(object,
     method <- if (n >= 100) "mirt" else "mokken"
 
   dat <- object$data
+  dat[] <- lapply(dat, function(z) if (is.factor(z)) as.integer(z) else z)
   removed <- character(0)      # isimlerini tutacağız
 
   if (method == "mirt") {
