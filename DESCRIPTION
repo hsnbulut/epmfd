@@ -1,14 +1,20 @@
 Package: epmfd
-Title: What the Package Does (One Line, Title Case)
-Version: 0.1.
-Authors@R: 
-    person("Hasan", "Bulut", , "hasan.bulut@omu.edu.tr", role = c("aut", "cre"),
+Title: Robust Person-Misfit Detection Toolkit
+Version: 0.1.0
+Authors@R: c(
+    person("Hasan", "Bulut",
+           email   = "hasan.bulut@omu.edu.tr",
+           role    = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-6924-9651")),
-    person("Asiye Şengül", "Avşar", , "asiye.sengul@erdogan.edu.tr", role = c("aut"),
+    person("Asiye Şengül", "Avşar",
+           email   = "asiye.sengul@erdogan.edu.tr",
+           role    = "aut",
            comment = c(ORCID = "0000-0001-5522-2514"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+)
+Description: Tools to identify and remove person-misfit in
+  polytomous item response data using either Mokken or MIRT
+  scaling, with automatic thresholds and visual diagnostics.
+License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
