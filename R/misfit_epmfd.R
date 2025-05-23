@@ -28,8 +28,8 @@ misfit_epmfd <- function(object,
 
   res <- list()
   # ----- hesaplamalar -----
-  if ("lpz"  %in% stats)
-    res$lpz  <- PerFit::lzstar(X)$PFscores  > crit
+  if ("lpz" %in% stats)
+    res$lpz  <- PerFit::lzpoly(X, K = K)$PFscores > crit
 
   if ("Gp"   %in% stats)
     res$Gp   <- PerFit::Gpoly(X, K = K)$PFscores  > crit
