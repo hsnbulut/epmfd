@@ -1,13 +1,8 @@
 ---
-title: "epmfd – Robust Person-Misfit Detection for Polytomous IRT Data"
+title: "epmfd package"
 output: github_document
+author: "Hasan Bulut"
 ---
-
-<!-- badges: start -->
-
-<!-- badges: end -->
-
-\`\`\`{r setup, include = FALSE} knitr::opts_chunk\$set( collapse = TRUE, comment = "#\>" )
 
 # Why epmfd?
 
@@ -85,10 +80,10 @@ demo_out/
   study1.rds          # full epmfd_clean object
 ---
 
-## Function Map
+# Function Map
 
 | Stage      | Function                             | Key options                                                 |
-|-----------|--------------------------|-----------------------------------|
+|------------------|---------------------|----------------------------------|
 | **Load**   | `load_epmfd()`                       | `id_col`, `K` (auto detected)                               |
 | **Scale**  | `scale_epmfd()`                      | `method = "auto"` / `"mirt"` / `"mokken"`, `a_thr`, `H_thr` |
 | **Misfit** | `misfit_epmfd()`                     | `alpha`, `stats = c("lpz","Gp","U3p")`                      |
@@ -96,6 +91,6 @@ demo_out/
 | **Plot**   | `plot()` S3, `plot_misfit_scatter()` | —                                                           |
 | **Export** | `export_epmfd()`                     | `dir`, `prefix`, \`format = "csv"                           |
 
-## License
+# License
 
 GPL-3 © 2025 Hasan Bulut & Asiye Şengül Avşar

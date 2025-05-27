@@ -12,6 +12,10 @@
 
 ``` r
 remotes::install_github("hsnbulut/epmfd")
+
+# or
+
+devtools::install_github("hsnbulut/epmfd")
 ```
 
 # Quick Start
