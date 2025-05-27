@@ -1,78 +1,118 @@
-#' Scatter plot of two person-fit statistics with cut-off lines
+#' Scatter / bubble plot for epmfd_misfit
 #'
-#' @description
-#' Displays respondents in the plane defined by two misfit statistics.
-#' Points that exceed both cut-off values (upper-right quadrant) are the
-#' most problematic persons.
+#' @inheritParams plot_misfit_scatter
+#' @param x_stat,y_stat,z_stat Character names of statistics in
+#'   \code{misfit$scores}.  If all three are \code{NULL}, the first three
+#'   available statistics are chosen automatically.
 #'
-#' @param object An `epmfd_misfit` object, or an `epmfd_clean` object that
-#'   still contains the original misfit results.
-#'
-#' @param x_stat Character, **one of** `"lpz"`, `"Gp"`, `"Gpn"`, `"U3p"`.
-#'   Statistic to be shown on the *x*-axis.
-#'   Default is `"lpz"`.
-#'
-#' @param y_stat Character, **one of** `"lpz"`, `"Gp"`, `"Gpn"`, `"U3p"`,
-#'   **different from** `x_stat`.  Statistic to be shown on the *y*-axis.
-#'   Default is `"Gp"`.
-#'
-#' @param alpha  Numeric in (0, 1).  If `x_cut` or `y_cut` is `NULL`,
-#'   cut-off values are set to `qnorm(1 - alpha)`.
-#'
-#' @param x_cut,y_cut Numeric cut-off values.  When supplied they override
-#'   the `alpha`-based defaults.
-#'
-#' @param ... Additional aesthetics or layers passed to
-#'   [ggplot2::geom_point()].
-#'
-#' @return A `ggplot` object that can be further customised.
-#'
-#' @importFrom ggplot2 ggplot aes geom_point geom_hline geom_vline labs
-#'   theme_minimal
-#' @importFrom stats qnorm
 #' @export
-
 plot_misfit_scatter <- function(object,
-                                x_stat = "lpz",
-                                y_stat = "Gp",
+                                x_stat = NULL,
+                                y_stat = NULL,
+                                z_stat = NULL,
+                                bubble = TRUE,
                                 alpha  = 0.05,
                                 x_cut  = NULL,
                                 y_cut  = NULL,
+                                z_cut  = NULL,
+                                label_ids = FALSE,
                                 ...) {
 
-  ## --- retrieve misfit scores -------------------------------------------
+  ## 1 ─ object & scores ------------------------------------------------------
   if (inherits(object, "epmfd_clean"))
     object <- object$misfit
-  if (!inherits(object, "epmfd_misfit"))
-    stop("`object` must be of class 'epmfd_misfit' or 'epmfd_clean'.")
+  stopifnot(inherits(object, "epmfd_misfit"))
 
   sc <- object$scores
-  if (!(x_stat %in% names(sc) && y_stat %in% names(sc)))
-    stop("Statistics not found in stored scores.")
+  avail <- names(sc)
 
+  ## 2 ─ otomatik stat seçimi -------------------------------------------------
+  if (is.null(x_stat) && is.null(y_stat) && is.null(z_stat)) {
+    if (length(avail) < 2)
+      stop("At least two statistics required.")
+    x_stat <- avail[1]
+    y_stat <- avail[2]
+    if (length(avail) >= 3) z_stat <- avail[3]
+    bubble <- !is.null(z_stat)   # otomatik bubble
+  }
+
+  needed <- c(x_stat, y_stat, z_stat)
+  needed <- needed[!is.null(needed)]
+  if (!all(needed %in% avail))
+    stop("Requested statistics not found in stored scores.")
+
+  ## 3 ─ Data frame -----------------------------------------------------------
   df <- data.frame(
     id = object$table$id,
     x  = sc[[x_stat]],
     y  = sc[[y_stat]]
   )
+  if (!is.null(z_stat))
+    df$z <- sc[[z_stat]]
 
-  ## --- cut-off values ----------------------------------------------------
+  ## 4 ─ Cut-offs -------------------------------------------------------------
   if (is.null(x_cut)) x_cut <- stats::qnorm(1 - alpha)
   if (is.null(y_cut)) y_cut <- stats::qnorm(1 - alpha)
+  if (!is.null(z_stat) && is.null(z_cut))
+    z_cut <- stats::qnorm(1 - alpha)
 
-  ## --- build plot --------------------------------------------------------
-  ggplot2::ggplot(df, ggplot2::aes(x, y)) +
-    ggplot2::geom_point(alpha = .8, ...) +
-    ggplot2::geom_hline(yintercept = y_cut, linetype = 2) +
+  ## 5 ─ Colour & size vars ---------------------------------------------------
+  if (!is.null(z_stat)) {
+    df$colour_flag <- ifelse(df$z > z_cut, "misfit", "fit")
+    colours <- c(fit = "#2c7bb6", misfit = "#d73027")
+  }
+
+  ## 6 ─ ggplot ---------------------------------------------------------------
+  p <- ggplot2::ggplot(df, ggplot2::aes(x, y))
+
+  if (!is.null(z_stat) && bubble) {
+    # Balon grafiği  (boyut = |z|, renk = fit/misfit)
+    p <- p +
+      ggplot2::geom_point(
+        ggplot2::aes(size = abs(z), colour = colour_flag), ...) +
+      ggplot2::scale_colour_manual(
+        values = colours,
+        name   = sprintf("%s (cut-off: %.2f)", z_stat, z_cut),
+        labels = c(fit = paste0("≤ ", format(z_cut, digits = 3)),
+                   misfit = paste0("> ", format(z_cut, digits = 3)))) +
+      ggplot2::scale_size(guide = "none")          # boyut legend’i gizle
+
+  } else if (!is.null(z_stat)) {
+    # Renkli scatter (sabit nokta boyutu)
+    p <- p +
+      ggplot2::geom_point(
+        ggplot2::aes(colour = colour_flag), size = 3, ...) +
+      ggplot2::scale_colour_manual(
+        values = colours,
+        name   = sprintf("%s (cut-off: %.2f)", z_stat, z_cut),
+        labels = c(fit = paste0("≤ ", format(z_cut, digits = 3)),
+                   misfit = paste0("> ", format(z_cut, digits = 3))))
+  } else {
+    # Klasik scatter (tek renk)
+    p <- p + ggplot2::geom_point(size = 3, ...)
+  }
+
+  p <- p +
+    ggplot2::geom_hline(yintercept = y_cut,  linetype = 2) +
     ggplot2::geom_vline(xintercept = x_cut, linetype = 2) +
     ggplot2::labs(
-      title = sprintf("%s vs %s (alpha = %.2f)", x_stat, y_stat, alpha),
+      title    = sprintf("%s vs %s (alpha = %.2f)", y_stat, x_stat, alpha),
       subtitle = sprintf("Cut-offs: %.2f | %.2f", x_cut, y_cut),
-      x = x_stat, y = y_stat
-    )+
+      x = x_stat, y = y_stat) +
     ggplot2::theme_minimal()
-}
 
-## Silence R CMD check for NSE vars
-if (getRversion() >= "2.15.1")
-  utils::globalVariables(c("x", "y"))
+
+
+  ## 7 ─ ID labels ------------------------------------------------------------
+  if (label_ids) {
+    if (requireNamespace("ggrepel", quietly = TRUE)) {
+      p <- p + ggrepel::geom_text_repel(
+        ggplot2::aes(label = id), size = 3, min.segment.length = 0)
+    } else {
+      p <- p + ggplot2::geom_text(
+        ggplot2::aes(label = id), vjust = -0.6, size = 3)
+    }
+  }
+
+  return(p)
+}

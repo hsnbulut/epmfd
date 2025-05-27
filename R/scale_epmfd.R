@@ -21,6 +21,20 @@ scale_epmfd <- function(object,
     method <- if (n >= 100) "mirt" else "mokken"
 
   dat <- object$data
+  ## --- At single-category items ----------------------------------------
+  uniq_per_item <- vapply(dat, function(col) length(unique(col)), 1L)
+  if (all(uniq_per_item == 1L))
+    stop("All remaining items have only one response category; "
+         ,"scale_epmfd() cannot estimate a model. "
+         ,"Relax your cleaning criterion or alpha.")
+
+  if (any(uniq_per_item == 1L)) {
+    drop_it <- names(uniq_per_item[uniq_per_item == 1L])
+    message("Removed constant items: ", paste(drop_it, collapse = ", "))
+    dat <- dat[ , !(names(dat) %in% drop_it), drop = FALSE]
+    removed <- c(removed, drop_it)
+  }
+
   dat[] <- lapply(dat, function(z) if (is.factor(z)) as.integer(z) else z)
   removed <- character(0)      # isimlerini tutacağız
 

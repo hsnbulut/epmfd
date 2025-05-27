@@ -1,55 +1,65 @@
-#' Remove misfitting persons from the data
+#' Remove mis-fitting persons
 #'
-#' @param object    An `epmfd_misfit` object created by [misfit_epmfd()].
-#' @param criterion Character. If `"intersection"`, a person is removed only
-#'   when they are flagged as misfitting by **all** selected statistics;
-#'   if `"union"`, a person is removed when flagged by **any** of the selected
-#'   statistics.
-#' @param keep_table Logical. If `FALSE`, drops the misfit table from the output
-#'   to save memory.
+#' @param misfit An object returned by [misfit_epmfd()].
+#' @param criterion "union" (default) = at least one statistic flags
+#'   a person; "intersection" = all statistics flag the person.
 #'
-#' @return An object of class `epmfd_clean` containing:
-#' \itemize{
-#'   \item \code{clean_data}: the item matrix after removing persons
-#'   \item \code{removed_id}: IDs of the removed persons
-#'   \item \code{n_removed}:  number of removed persons
-#'   \item \code{criterion}:  cleaning rule used
-#'   \item \code{misfit}:     original `epmfd_misfit` object (optional)
-#' }
+#' @return An `epmfd_clean` object that also contains a ready-to-use
+#'   `epmfd_raw` object in the slot `raw`, so you can call
+#'   `scale_epmfd(clean$raw, ...)` directly.
 #' @export
-clean_epmfd <- function(object,
-                        criterion  = c("intersection", "union"),
-                        keep_table = TRUE) {
+clean_epmfd <- function(misfit,
+                        criterion = c("union", "intersection")) {
 
-  if (!inherits(object, "epmfd_misfit"))
-    stop("Input must be an 'epmfd_misfit' object.", call. = FALSE)
-
+  stopifnot(inherits(misfit, "epmfd_misfit"))
   criterion <- match.arg(criterion)
-  tbl       <- object$table
 
-  # --- build logical vector -------------------------------------------------
-  remove_flag <- if (criterion == "union") {
-    tbl$misfit_any
+  tbl   <- misfit$table
+  stats <- misfit$stats
+
+  ## ------------------------------------------------------------------
+  ## 1  – Uyumsuz kişileri belirle
+  ## ------------------------------------------------------------------
+  fit_flag <- if (criterion == "union") {
+    !tbl$misfit_any
   } else {                              # intersection
-    apply(tbl[object$stats], 1, all)
+    rowSums(!tbl[stats]) == length(stats)
   }
 
-  removed_id <- tbl$id[remove_flag]
-  kept_rows  <- !object$scaled$raw$id %in% removed_id
-  clean_dat  <- object$scaled$raw$data[kept_rows, , drop = FALSE]
+  n_removed <- sum(!fit_flag)
 
-  out <- list(
-    clean_data = clean_dat,
-    removed_id = removed_id,
-    n_removed  = length(removed_id),
-    criterion  = criterion,
-    misfit     = if (keep_table) object else NULL
+  ## ------------------------------------------------------------------
+  ## 2  – Temiz madde verisi (yalnız kept maddeler)
+  ## ------------------------------------------------------------------
+  kept_items <- misfit$scaled$kept            # dizge vektörü
+  raw_orig   <- misfit$scaled$raw
+
+  clean_data <- raw_orig$data[fit_flag, kept_items, drop = FALSE]
+  clean_id   <- raw_orig$id[fit_flag]
+
+  ## sütunları ordered-factor olarak bırakalım → load_epmfd gerekmez
+  K <- raw_orig$K
+
+  ## ------------------------------------------------------------------
+  ## 3  – Yeni epmfd_raw objesini oluştur
+  ## ------------------------------------------------------------------
+  raw_clean <- list(
+    data = clean_data,
+    id   = clean_id,
+    K    = K
   )
-  class(out) <- c("epmfd_clean", class(out))
-  out
-}
+  class(raw_clean) <- c("epmfd_raw", "list")
 
-# Silence R CMD check about NSE variable 'id'
-if (getRversion() >= "2.15.1") {
-  utils::globalVariables("id")
+  ## ------------------------------------------------------------------
+  ## 4  – epmfd_clean nesnesi
+  ## ------------------------------------------------------------------
+  out <- list(
+    raw        = raw_clean,      # doğrudan ölçeklenebilir
+    clean_data = clean_data,     # ham veri çerçevesi
+    n_removed  = n_removed,
+    criterion  = criterion,
+    misfit     = misfit
+  )
+  class(out) <- c("epmfd_clean", "list")
+  return(out)
 }

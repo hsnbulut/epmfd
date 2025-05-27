@@ -1,56 +1,101 @@
 ---
+title: "epmfd – Robust Person-Misfit Detection for Polytomous IRT Data"
 output: github_document
 ---
-
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-",
-  out.width = "100%"
-)
-```
-
-# epmfd
 
 <!-- badges: start -->
 
 <!-- badges: end -->
 
-The goal of epmfd is to ...
+\`\`\`{r setup, include = FALSE} knitr::opts_chunk\$set( collapse = TRUE, comment = "#\>" )
 
-## Installation
+# Why epmfd?
 
-You can install the development version of epmfd from [GitHub](https://github.com/) with:
+***`epmfd`*** (Educational Person-Misfit Detection) wraps a practical workflow to
 
-``` r
-# install.packages("pak")
-pak::pak("hsnbulut/epmfd")
+1.  Load polytomous item responses.
+
+2.  Scale items via MIRT (graded response) or non-parametric Mokken, dropping weak items automatically.
+
+3.  Compute three robust person-fit statistics (lpz, Gp, U3p).
+
+4.  Flag and remove mis-fitting persons in one line.
+
+5.  Visualise each step and export clean data for further modelling.
+
+Everything works with three commands: ***`load_epmfd() → scale_epmfd() → misfit_epmfd()`*** – and no manual thresholds unless you want to tweak them.
+
+# How to install the package?
+
+```{r}
+# development HEAD
+remotes::install_github("hsnbulut/epmfd")
 ```
 
-## Example
+# Quick-start example
 
-This is a basic example which shows you how to solve a common problem:
+The chunk below simulates **200 persons × 12 Likert items** (including a deliberately weak item and 5 random-response persons) and walks through the complete workflow.
 
-```{r example}
+```{r}
 library(epmfd)
-## basic example code
+library(mirt)       # only for data simulation
+
+set.seed(42)
+
+## --- 1. simulate data -------------------------------------------------
+m  <- 12; K <- 5
+a <- c(runif(m-1, .8, 1.2), .2)                 # last item weak
+d <- matrix(sort(runif(m*(K-1), -1.5, 1.5)),
+            m, K-1, byrow = TRUE)
+
+normal <- simdata(a, d, itemtype = "graded",
+                  Theta = matrix(rnorm(195)))
+bad    <- matrix(sample(1:K, 5*m, TRUE), 5, m)
+toy    <- as.data.frame(rbind(normal, bad))
+names(toy) <- paste0("Item", 1:m)
+
+## --- 2. epmfd pipeline -----------------------------------------------
+raw    <- load_epmfd(toy)
+scaled <- scale_epmfd(raw, method = "auto")         # weak item removed
+misfit <- misfit_epmfd(scaled, alpha = .05)         # lpz, Gp, U3p
+clean  <- clean_epmfd(misfit, criterion = "union")  # 5 persons removed
+
+## --- 3. inspect -------------------------------------------------------
+print(misfit)         # textual summary
+plot(scaled)          # bar + quality histogram
+plot(misfit)          # misfit bars
+plot(clean)           # remaining vs removed
+plot_misfit_scatter(misfit, x_stat = "U3p",
+                    y_stat = "Gp",
+                    z_stat = "lpz",
+                    bubble = TRUE,
+                    label_ids = TRUE)
+
+## --- 4. export --------------------------------------------------------
+export_epmfd(clean, dir = "demo_out", prefix = "study1", format = "csv")
+
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+Output files:
 
-```{r cars}
-summary(cars)
-```
+---
+demo_out/
+  study1_clean.csv    # cleaned item matrix (190 × remaining items)
+  study1_misfit.csv   # person × statistic flags
+  study1.rds          # full epmfd_clean object
+---
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this.
+## Function Map
 
-You can also embed plots, for example:
+| Stage      | Function                             | Key options                                                 |
+|-----------|--------------------------|-----------------------------------|
+| **Load**   | `load_epmfd()`                       | `id_col`, `K` (auto detected)                               |
+| **Scale**  | `scale_epmfd()`                      | `method = "auto"` / `"mirt"` / `"mokken"`, `a_thr`, `H_thr` |
+| **Misfit** | `misfit_epmfd()`                     | `alpha`, `stats = c("lpz","Gp","U3p")`                      |
+| **Clean**  | `clean_epmfd()`                      | `criterion = "union"` / `"intersection"`                    |
+| **Plot**   | `plot()` S3, `plot_misfit_scatter()` | —                                                           |
+| **Export** | `export_epmfd()`                     | `dir`, `prefix`, \`format = "csv"                           |
 
-```{r pressure, echo = FALSE}
-plot(pressure)
-```
+## License
 
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.
+GPL-3 © 2025 Hasan Bulut & Asiye Şengül Avşar

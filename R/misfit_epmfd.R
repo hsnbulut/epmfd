@@ -2,19 +2,19 @@
 #'
 #' @param object An \code{epmfd_scaled} object.
 #' @param stats  Character vector: any of \code{"auto"}, \code{"lpz"},
-#'   \code{"Gp"}, \code{"Gpn"}, \code{"U3p"}.
+#'   \code{"Gp"} , \code{"U3p"}.
 #' @param alpha  Significance level (default 0.05).
 #' @return An \code{epmfd_misfit} object.
 #' @export
 misfit_epmfd <- function(object,
-                         stats = c("auto", "lpz", "Gp", "Gpn", "U3p"),
+                         stats = c("auto", "lpz", "Gp", "U3p"),
                          alpha = 0.05) {
 
   if (!inherits(object, "epmfd_scaled"))
     stop("Input must be an 'epmfd_scaled' object.")
 
   stats <- match.arg(stats, several.ok = TRUE)
-  if ("auto" %in% stats) stats <- c("lpz", "Gp", "Gpn", "U3p")
+  if ("auto" %in% stats) stats <- c("lpz", "Gp","U3p")
 
   ## veri --------------------------------------------------------------------
   X <- object$raw$data |>
@@ -40,17 +40,7 @@ misfit_epmfd <- function(object,
     scores$Gp <- PerFit::Gpoly(X, Ncat = K)$PFscores
     res$Gp    <- scores$Gp > crit
   }
-  ## Gpn ---------------------------------------------------------------------
-  if ("Gpn" %in% stats) {
-    if (exists("Gnorm", envir = pf_ns)) {
-      Gnorm_fun   <- get("Gnorm", envir = pf_ns)
-      scores$Gpn  <- Gnorm_fun(X, Ncat = K)$PFscores
-      res$Gpn     <- scores$Gpn > crit
-    } else {
-      warning("Gpn statistic not available in this PerFit version; skipped.")
-      stats <- setdiff(stats, "Gpn")
-    }
-  }
+
   ## U3p ---------------------------------------------------------------------
   if ("U3p" %in% stats) {
     scores$U3p <- PerFit::U3poly(X, Ncat = K)$PFscores
@@ -58,23 +48,25 @@ misfit_epmfd <- function(object,
   }
 
   ## tablo -------------------------------------------------------------------
-  flag_tbl <- as.data.frame(res)
+  flag_tbl <- as.data.frame(res, check.names = FALSE)
+  names(flag_tbl) <- names(res)     # << zaten vardı
+
   flag_tbl$id <- object$raw$id
+  cols <- intersect(names(res), stats)
+  flag_tbl$misfit_any <- if (length(cols))
+    apply(flag_tbl[cols], 1, any) else FALSE
 
-  cols <- intersect(stats, names(flag_tbl))  # güvenli sütun listesi
-  if (length(cols) > 0) {
-    flag_tbl$misfit_any <- apply(flag_tbl[cols], 1, any)
-  } else {
-    flag_tbl$misfit_any <- FALSE
-  }
+  ## ----- DÜZELTME burası ---------------------------------------------------
+  scores_df <- as.data.frame(scores, check.names = FALSE)
+  names(scores_df) <- names(scores)           #  <<— ÖNEMLİ
+  ## ------------------------------------------------------------------------
 
-  ## çıktı --------------------------------------------------------------------
   out <- list(
     scaled = object,
     stats  = stats,
     alpha  = alpha,
     table  = flag_tbl,
-    scores = as.data.frame(scores)
+    scores = scores_df                       # güncel adlarıyla
   )
   class(out) <- c("epmfd_misfit", "list")
   return(out)
