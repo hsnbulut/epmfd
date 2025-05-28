@@ -2,10 +2,10 @@
 
 `epmfd` (Easy person misfit detection) wraps a practical workflow to:
 
-1.  Load polytomous item responses.\
-2.  Scale items via MIRT (graded response) or non-parametric Mokken, dropping weak items automatically.\
-3.  Compute three robust person-fit statistics (lpz, Gp, U3p).\
-4.  Flag and remove mis-fitting persons in one line.\
+1.  Load polytomous item responses.
+2.  Scale items via MIRT (graded response) or non-parametric Mokken, dropping weak items automatically.
+3.  Compute three robust person-fit statistics (lpz, Gp, U3p).
+4.  Flag and remove mis-fitting persons in one line.
 5.  Visualise each step and export clean data for further modelling.
 
 ## How to install
