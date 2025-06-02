@@ -33,7 +33,8 @@ The chunk below simulates **200 persons × 12 Likert items** (including a delibe
 
 ```{r}
 library(epmfd)
-library(mirt)       # only for data simulation
+library(mirt)
+library(mokken)
 
 set.seed(42)
 
@@ -80,10 +81,55 @@ demo_out/
   study1.rds          # full epmfd_clean object
 ---
 
+# Item Selection: Customising the Thresholds
+
+By default, scale_epmfd() automatically removes weak items based on the selected method:
+
+-   If method = "mirt" (graded response model), items with discrimination parameter a \< 0.5 are removed.
+
+-   If method = "mokken" (non-parametric scaling), items with scalability H_i \< 0.3 are removed.
+
+You can customise these thresholds using the arguments a_thr and H_thr:
+
+```{r}
+library(epmfd)
+library(mirt)
+library(mokken)
+scale_epmfd(raw, method = "mirt", a_thr = 0.6)         # for MIRT
+scale_epmfd(raw, method = "mokken", H_thr = 0.35)      # for Mokken
+```
+
+To keep all items, simply set the threshold to zero:
+
+```{r}
+library(epmfd)
+library(mirt)
+library(mokken)
+scale_epmfd(raw, method = "mirt", a_thr = 0)
+scale_epmfd(raw, method = "mokken", H_thr = 0)
+```
+
+When method = "auto" (the default), the function uses:
+
+-   "mokken" if the sample size is under 100,
+
+-   "mirt" otherwise.
+
+Even in auto mode, the thresholds can be overridden:
+
+```{r}
+library(epmfd)
+library(mirt)
+library(mokken)
+scale_epmfd(raw, method = "auto", a_thr = 0.6, H_thr = 0.35)
+```
+
+**Note:** An item may be removed in `"mirt"` mode but retained in `"mokken"` mode, or vice versa, because the selection criteria differ between methods.
+
 # Function Map
 
 | Stage      | Function                             | Key options                                                 |
-|------------------|---------------------|----------------------------------|
+|-------------------|---------------------|--------------------------------|
 | **Load**   | `load_epmfd()`                       | `id_col`, `K` (auto detected)                               |
 | **Scale**  | `scale_epmfd()`                      | `method = "auto"` / `"mirt"` / `"mokken"`, `a_thr`, `H_thr` |
 | **Misfit** | `misfit_epmfd()`                     | `alpha`, `stats = c("lpz","Gp","U3p")`                      |

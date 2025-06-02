@@ -54,12 +54,17 @@ plot.epmfd_scaled <- function(x, ...) {
                     x = "a", y = "Frequency") +
       ggplot2::theme_minimal()
   } else {
-    p_hist <- ggplot2::ggplot(data.frame(Hi = x$Hi),
-                              ggplot2::aes(Hi)) +
-      ggplot2::geom_histogram(bins = 20, ...) +
+    p_hist <- ggplot2::ggplot() +
+      ggplot2::geom_histogram(
+        ggplot2::aes(x = x$Hi),
+        bins = 20,
+        ...
+      ) +
       ggplot2::geom_vline(xintercept = x$H_thr, linetype = 2) +
-      ggplot2::labs(title = "Scalability (H_i) distribution",
-                    x = "H_i", y = "Frequency") +
+      ggplot2::labs(
+        title = "Scalability (H_i) distribution",
+        x = "H_i", y = "Frequency"
+      ) +
       ggplot2::theme_minimal()
   }
 

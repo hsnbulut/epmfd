@@ -1,88 +1,75 @@
-#' Scale Data via MIRT or Mokken
+#' Scale polytomous item responses
 #'
-#' @param object  An `epmfd_raw` created by [load_epmfd()].
-#' @param method  "auto", "mirt", or "mokken".
-#' @param H_thr   Numeric. Min scalability coefficient for Mokken (default 0.3).
-#' @param a_thr   Numeric. Min discrimination for MIRT (default 0.5).
-#' @param ...     Further arguments passed to `mirt()` or `mokken::check()`/`mokken::aisp`.
-#' @return An object of class `epmfd_scaled`.
+#' Automatically fits either a GRM model (via `mirt`) or a non-parametric
+#' Mokken model to the response data and filters out weak items.
+#'
+#' @param object An \code{epmfd_raw} object.
+#' @param method Scaling method: \code{"mirt"}, \code{"mokken"}, or
+#'   \code{"auto"} (chooses based on sample size).
+#' @param a_thr Threshold for discrimination parameter \code{a} in GRM
+#'   (default 0.5).
+#' @param H_thr Threshold for scalability coefficient \code{H_i} in Mokken
+#'   (default 0.3).
+#' @param drop_constant_persons Logical. Whether to remove persons who gave
+#'   the same response to all items (default \code{TRUE}).
+#'
+#' @return An \code{epmfd_scaled} object.
 #' @export
 scale_epmfd <- function(object,
                         method = c("auto", "mirt", "mokken"),
-                        H_thr = 0.3,
                         a_thr = 0.5,
-                        ...) {
+                        H_thr = 0.3,
+                        drop_constant_persons = TRUE) {
 
-  method <- match.arg(method)
-  n      <- nrow(object$data)
+  if (!inherits(object, "epmfd_raw"))
+    stop("Input must be an 'epmfd_raw' object.")
 
-  # automatic decision --------------------------------------------------------
-  if (method == "auto")
-    method <- if (n >= 100) "mirt" else "mokken"
+  X <- object$data
 
-  dat <- object$data
-  ## --- At single-category items ----------------------------------------
-  uniq_per_item <- vapply(dat, function(col) length(unique(col)), 1L)
-  if (all(uniq_per_item == 1L))
-    stop("All remaining items have only one response category; "
-         ,"scale_epmfd() cannot estimate a model. "
-         ,"Relax your cleaning criterion or alpha.")
-
-  if (any(uniq_per_item == 1L)) {
-    drop_it <- names(uniq_per_item[uniq_per_item == 1L])
-    message("Removed constant items: ", paste(drop_it, collapse = ", "))
-    dat <- dat[ , !(names(dat) %in% drop_it), drop = FALSE]
-    removed <- c(removed, drop_it)
+  # ----- Drop constant-response persons -----------------------------------
+  if (drop_constant_persons) {
+    same_response <- apply(X, 1, function(row) length(unique(row)) == 1)
+    n_dropped <- sum(same_response)
+    if (n_dropped > 0) {
+      warning(sprintf("%d persons gave identical responses to all items and were removed.", n_dropped))
+      X <- X[!same_response, , drop = FALSE]
+      object$id <- object$id[!same_response]
+    }
   }
 
-  dat[] <- lapply(dat, function(z) if (is.factor(z)) as.integer(z) else z)
-  removed <- character(0)      # isimlerini tutacağız
+  n <- nrow(X)
+  method <- match.arg(method)
+
+  if (method == "auto") {
+    method <- if (n >= 100) "mirt" else "mokken"
+  }
+
+  kept <- removed <- NULL
+  Hi <- NULL
+  model <- NULL
 
   if (method == "mirt") {
-    # ----------------- 1. model (tüm maddelerle) -----------------------------
-    mod1 <- mirt::mirt(dat, 1, itemtype = "graded", verbose = FALSE, ...)
-    pars <- mirt::coef(mod1, IRTpars = TRUE, simplify = TRUE)$items
-
-    weak_items <- rownames(pars)[pars[ , "a"] < a_thr]
-    if (length(weak_items)) {
-      message("Removed items (a < ", a_thr, "): ", paste(weak_items, collapse = ", "))
-      dat <- dat[ , !(names(dat) %in% weak_items), drop = FALSE]
-      removed <- weak_items
-      # ----------------- 2. model (temizlenen set) ---------------------------
-      mod1 <- mirt::mirt(dat, 1, itemtype = "graded", verbose = FALSE, ...)
-    }
-
-    result <- list(raw     = object,
-                   method  = "mirt",
-                   model   = mod1,
-                   kept    = names(dat),
-                   removed = removed,
-                   a_thr   = a_thr)
-
-  } else {  # ---------- mokken --------------------------------------------
-    # H_i katsayılarını al
-    Hs <- mokken::coefH(dat)$Hi        # <- check() yerine
-
-    weak_items  <- names(Hs)[Hs < H_thr]
-    if (length(weak_items)) {
-      message("Removed items (H < ", H_thr, "): ",
-              paste(weak_items, collapse = ", "))
-      dat     <- dat[ , !(names(dat) %in% weak_items), drop = FALSE]
-      removed <- weak_items
-      Hs      <- mokken::coefH(dat)$Hi   # yeniden hesapla
-    }
-
-    scale_out <- mokken::aisp(dat, lowerbound = H_thr, ...)
-
-    result <- list(raw      = object,
-                   method   = "mokken",
-                   scales   = scale_out,
-                   kept     = names(dat),
-                   removed  = removed,
-                   H_thr    = H_thr,
-                   Hi       = Hs)
+    model <- mirt::mirt(X, 1, itemtype = "graded", verbose = FALSE)
+    pars <- mirt::coef(model, IRTpars = TRUE, simplify = TRUE)$items
+    kept <- rownames(pars)[pars[, "a"] >= a_thr]
+    removed <- setdiff(rownames(pars), kept)
+  } else {
+    mokken <- mokken::mokken(X)
+    Hi <- mokken$Hi
+    kept <- names(Hi)[Hi >= H_thr]
+    removed <- setdiff(names(Hi), kept)
   }
 
-  class(result) <- c("epmfd_scaled", class(result))
-  return(result)
+  out <- list(
+    raw     = object,
+    method  = method,
+    kept    = kept,
+    removed = removed,
+    model   = model,
+    Hi      = Hi,
+    a_thr   = a_thr,
+    H_thr   = H_thr
+  )
+  class(out) <- c("epmfd_scaled", "list")
+  return(out)
 }

@@ -32,8 +32,17 @@ misfit_epmfd <- function(object,
 
   ## lpz ---------------------------------------------------------------------
   if ("lpz" %in% stats) {
-    scores$lpz <- PerFit::lzpoly(X, Ncat = K)$PFscores
-    res$lpz    <- scores$lpz > crit
+    converged <- tryCatch({
+      mirt::converged(object$model)
+    }, error = function(e) FALSE)
+
+    if (!converged) {
+      warning("GRM model did not converge; skipping lpz statistic.")
+      stats <- setdiff(stats, "lpz")
+    } else {
+      scores$lpz <- PerFit::lzpoly(X, Ncat = K)$PFscores
+      res$lpz    <- scores$lpz > crit
+    }
   }
   ## Gp ----------------------------------------------------------------------
   if ("Gp" %in% stats) {

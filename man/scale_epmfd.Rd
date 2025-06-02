@@ -2,30 +2,35 @@
 % Please edit documentation in R/scale_epmfd.R
 \name{scale_epmfd}
 \alias{scale_epmfd}
-\title{Scale Data via MIRT or Mokken}
+\title{Scale polytomous item responses}
 \usage{
 scale_epmfd(
   object,
   method = c("auto", "mirt", "mokken"),
-  H_thr = 0.3,
   a_thr = 0.5,
-  ...
+  H_thr = 0.3,
+  drop_constant_persons = TRUE
 )
 }
 \arguments{
-\item{object}{An \code{epmfd_raw} created by \code{\link[=load_epmfd]{load_epmfd()}}.}
+\item{object}{An \code{epmfd_raw} object.}
 
-\item{method}{"auto", "mirt", or "mokken".}
+\item{method}{Scaling method: \code{"mirt"}, \code{"mokken"}, or
+\code{"auto"} (chooses based on sample size).}
 
-\item{H_thr}{Numeric. Min scalability coefficient for Mokken (default 0.3).}
+\item{a_thr}{Threshold for discrimination parameter \code{a} in GRM
+(default 0.5).}
 
-\item{a_thr}{Numeric. Min discrimination for MIRT (default 0.5).}
+\item{H_thr}{Threshold for scalability coefficient \code{H_i} in Mokken
+(default 0.3).}
 
-\item{...}{Further arguments passed to \code{mirt()} or \code{mokken::check()}/\code{mokken::aisp}.}
+\item{drop_constant_persons}{Logical. Whether to remove persons who gave
+the same response to all items (default \code{TRUE}).}
 }
 \value{
-An object of class \code{epmfd_scaled}.
+An \code{epmfd_scaled} object.
 }
 \description{
-Scale Data via MIRT or Mokken
+Automatically fits either a GRM model (via \code{mirt}) or a non-parametric
+Mokken model to the response data and filters out weak items.
 }

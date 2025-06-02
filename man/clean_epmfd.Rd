@@ -2,31 +2,21 @@
 % Please edit documentation in R/clean_epmfd.R
 \name{clean_epmfd}
 \alias{clean_epmfd}
-\title{Remove misfitting persons from the data}
+\title{Remove mis-fitting persons}
 \usage{
-clean_epmfd(object, criterion = c("intersection", "union"), keep_table = TRUE)
+clean_epmfd(misfit, criterion = c("union", "intersection"))
 }
 \arguments{
-\item{object}{An \code{epmfd_misfit} object created by \code{\link[=misfit_epmfd]{misfit_epmfd()}}.}
+\item{misfit}{An object returned by \code{\link[=misfit_epmfd]{misfit_epmfd()}}.}
 
-\item{criterion}{Character. If \code{"intersection"}, a person is removed only
-when they are flagged as misfitting by \strong{all} selected statistics;
-if \code{"union"}, a person is removed when flagged by \strong{any} of the selected
-statistics.}
-
-\item{keep_table}{Logical. If \code{FALSE}, drops the misfit table from the output
-to save memory.}
+\item{criterion}{"union" (default) = at least one statistic flags
+a person; "intersection" = all statistics flag the person.}
 }
 \value{
-An object of class \code{epmfd_clean} containing:
-\itemize{
-\item \code{clean_data}: the item matrix after removing persons
-\item \code{removed_id}: IDs of the removed persons
-\item \code{n_removed}:  number of removed persons
-\item \code{criterion}:  cleaning rule used
-\item \code{misfit}:     original \code{epmfd_misfit} object (optional)
-}
+An \code{epmfd_clean} object that also contains a ready-to-use
+\code{epmfd_raw} object in the slot \code{raw}, so you can call
+\code{scale_epmfd(clean$raw, ...)} directly.
 }
 \description{
-Remove misfitting persons from the data
+Remove mis-fitting persons
 }

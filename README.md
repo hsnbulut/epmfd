@@ -20,7 +20,7 @@ devtools::install_github("hsnbulut/epmfd")
 
 # Quick Start
 
-```r
+``` r
 library(epmfd)
 library(mirt)
 
@@ -79,8 +79,52 @@ export_epmfd(clean,format = "xlsx",save_rds = FALSE)
 export_epmfd(misfit,format = "csv",save_rds = FALSE)
 export_epmfd(scaled,format = "xlsx")
 
-
 ```
+
+# Item Selection: Customising the Thresholds
+
+By default, scale_epmfd() automatically removes weak items based on the selected method:
+
+-   If method = "mirt" (graded response model), items with discrimination parameter a \< 0.5 are removed.
+
+-   If method = "mokken" (non-parametric scaling), items with scalability H_i \< 0.3 are removed.
+
+You can customise these thresholds using the arguments a_thr and H_thr:
+
+```{r}
+library(epmfd)
+library(mirt)
+library(mokken)
+scale_epmfd(raw, method = "mirt", a_thr = 0.6)         # for MIRT
+scale_epmfd(raw, method = "mokken", H_thr = 0.35)      # for Mokken
+```
+
+To keep all items, simply set the threshold to zero:
+
+```{r}
+library(epmfd)
+library(mirt)
+library(mokken)
+scale_epmfd(raw, method = "mirt", a_thr = 0)
+scale_epmfd(raw, method = "mokken", H_thr = 0)
+```
+
+When method = "auto" (the default), the function uses:
+
+-   "mokken" if the sample size is under 100,
+
+-   "mirt" otherwise.
+
+Even in auto mode, the thresholds can be overridden:
+
+```{r}
+library(epmfd)
+library(mirt)
+library(mokken)
+scale_epmfd(raw, method = "auto", a_thr = 0.6, H_thr = 0.35)
+```
+
+**Note:** An item may be removed in `"mirt"` mode but retained in `"mokken"` mode, or vice versa, because the selection criteria differ between methods.
 
 # License
 

@@ -4,17 +4,13 @@
 \alias{misfit_epmfd}
 \title{Compute person-fit statistics (polytomous)}
 \usage{
-misfit_epmfd(
-  object,
-  stats = c("auto", "lpz", "Gp", "Gpn", "U3p"),
-  alpha = 0.05
-)
+misfit_epmfd(object, stats = c("auto", "lpz", "Gp", "U3p"), alpha = 0.05)
 }
 \arguments{
 \item{object}{An \code{epmfd_scaled} object.}
 
 \item{stats}{Character vector: any of \code{"auto"}, \code{"lpz"},
-\code{"Gp"}, \code{"Gpn"}, \code{"U3p"}.}
+\code{"Gp"} , \code{"U3p"}.}
 
 \item{alpha}{Significance level (default 0.05).}
 }
