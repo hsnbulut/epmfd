@@ -1,5 +1,5 @@
 Package: epmfd
-Title: Robust Person-Misfit Detection Toolkit
+Title: Easy Person MisFit Detection
 Version: 1.0.4
 Authors@R: c(
     person("Hasan", "Bulut",
