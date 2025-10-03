@@ -78,7 +78,6 @@ plot(clean)
 export_epmfd(clean,format = "xlsx",save_rds = FALSE)
 export_epmfd(misfit,format = "csv",save_rds = FALSE)
 export_epmfd(scaled,format = "xlsx")
-
 ```
 
 # Item Selection: Customising the Thresholds

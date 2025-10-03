@@ -109,7 +109,7 @@ scale_epmfd(raw, method = "auto", a_thr = 0.6, H_thr = 0.35)
 # Function Map
 
 | Stage      | Function                  | Key options                                    |
-|-------------------|---------------------|--------------------------------|
+|------------|---------------------------|------------------------------------------------|
 | **Load**   | `load_epmfd()`            | `id_col`, `likert_levels` (auto detected)      |
 | **Scale**  | `scale_epmfd()`           | `method`, `a_thr`, `H_thr`                     |
 | **Misfit** | `misfit_epmfd()`          | `stats`, `cut.off`                             |
