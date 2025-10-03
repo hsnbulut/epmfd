@@ -2,21 +2,66 @@
 % Please edit documentation in R/clean_epmfd.R
 \name{clean_epmfd}
 \alias{clean_epmfd}
-\title{Remove mis-fitting persons}
+\title{Remove misfitting persons from an epmfd_misfit object}
 \usage{
 clean_epmfd(misfit, criterion = c("union", "intersection"))
 }
 \arguments{
-\item{misfit}{An object returned by \code{\link[=misfit_epmfd]{misfit_epmfd()}}.}
+\item{misfit}{An \code{epmfd_misfit} object returned by \code{\link[=misfit_epmfd]{misfit_epmfd()}}.}
 
-\item{criterion}{"union" (default) = at least one statistic flags
-a person; "intersection" = all statistics flag the person.}
+\item{criterion}{Character string, either \code{"union"} (default) or \code{"intersection"}.}
 }
 \value{
-An \code{epmfd_clean} object that also contains a ready-to-use
-\code{epmfd_raw} object in the slot \code{raw}, so you can call
-\code{scale_epmfd(clean$raw, ...)} directly.
+An \code{epmfd_clean} list with the following elements:
+\itemize{
+\item \code{raw}: An \code{epmfd_raw} object containing only the retained persons and
+items, directly usable in \code{\link[=scale_epmfd]{scale_epmfd()}}.
+\item \code{clean_data}: The cleaned raw data frame (persons × kept items).
+\item \code{n_removed}: Number of persons removed.
+\item \code{criterion}: The applied decision rule.
+\item \code{misfit}: The original \code{epmfd_misfit} object.
+}
 }
 \description{
-Remove mis-fitting persons
+\code{clean_epmfd()} removes individuals flagged as misfitting according to
+a chosen rule and returns a cleaned dataset that can be directly passed
+to \code{\link[=scale_epmfd]{scale_epmfd()}}.
+}
+\details{
+The function relies on the columns in \code{misfit$table}:
+\itemize{
+\item \code{misfit_any}: Indicates whether at least one statistic flagged a person.
+\item \code{stats}: Names of the statistics used (e.g., \code{"Gnp"}, \code{"U3p"}, \code{"lpz"}).
+}
+Persons are retained based on the selected criterion and only the
+kept items from \code{misfit$scaled$kept} are preserved.
+}
+\section{Criterion}{
+
+\itemize{
+\item \code{"union"}: A person is removed if \strong{at least one} statistic (e.g., Gnp, U3p, lpz)
+flags them as misfitting. This is stricter.
+\item \code{"intersection"}: A person is removed only if \strong{all} statistics flag them
+as misfitting. This is more lenient.
+}
+}
+
+\examples{
+\dontrun{
+# Assume 'mf' is the result of misfit_epmfd()
+
+# Remove anyone flagged by at least one statistic
+cl1 <- clean_epmfd(mf, criterion = "union")
+cl1$n_removed
+scale_obj <- scale_epmfd(cl1$raw)
+
+# Remove only those flagged by all statistics
+cl2 <- clean_epmfd(mf, criterion = "intersection")
+
+head(cl1$clean_data)
+}
+
+}
+\seealso{
+\code{\link[=misfit_epmfd]{misfit_epmfd()}}, \code{\link[=scale_epmfd]{scale_epmfd()}}
 }

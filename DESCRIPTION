@@ -1,6 +1,6 @@
 Package: epmfd
 Title: Robust Person-Misfit Detection Toolkit
-Version: 0.4.1
+Version: 1.0.1
 Authors@R: c(
     person("Hasan", "Bulut",
            email   = "hasan.bulut@omu.edu.tr",
@@ -10,23 +10,33 @@ Authors@R: c(
            email   = "asiye.sengul@erdogan.edu.tr",
            role    = "aut",
            comment = c(ORCID = "0000-0001-5522-2514")))
-Description: Tools to identify and remove person-misfit in polytomous
-  item-response data using either Mokken or MIRT scaling. Provides
-  automatic thresholds, visual diagnostics, and export utilities.
+Description: Tools to identify and remove person misfit in polytomous
+    item-response data using either Mokken or a graded response model (GRM, via mirt).
+    Provides automatic thresholds, visual diagnostics (2D/3D), and export utilities.
 License: GPL-3 | file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+URL: https://github.com/hsnbulut/epmfd
+BugReports: https://github.com/hsnbulut/epmfd/issues
 Imports:
     dplyr,
-    readr,
+    fs,
+    ggplot2,
     mirt,
     mokken,
     PerFit,
-    ggplot2,
-    fs
-Suggests: 
+    readr,
+    rlang,
+    tibble
+Suggests:
+    plotly,
+    ggrepel,
     openxlsx,
-    patchwork
-URL: https://github.com/hsnbulut/epmfd
-BugReports: https://github.com/hsnbulut/epmfd/issues
+    haven,
+    patchwork,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Depends: 
+    R (>= 3.5)
+LazyData: true

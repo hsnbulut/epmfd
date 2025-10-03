@@ -7,9 +7,11 @@ print.epmfd_misfit <- function(x, ...) {
 
   cat("========  epmfd_misfit  ========\n")
   cat("Statistics used :", paste(x$stats, collapse = ", "), "\n")
-  cat("Alpha           :", x$alpha, "\n")
+  thr_values <- vapply(x$thresholds, function(th) th$value, numeric(1))
+  cat("Thresholds used :", paste(thr_values, collapse = ", "), "\n")
   cat("Total persons   :", nrow(x$table), "\n")
-  cat("Any misfit (%)  :", round(100 * mean(x$table$misfit_any), 1), "\n\n")
+  cat("misfit any (%)  :", round(100 * mean(x$table$misfit_any), 1), "\n")
+  cat("misfit Final (%)  :", round(100 * mean(x$table$misfit_final), 1), "\n\n")
 
   utils::head(x$table, ...) |>
     print(row.names = FALSE)
@@ -22,6 +24,7 @@ print.epmfd_misfit <- function(x, ...) {
 #' @param ...    Further arguments (ignored).
 #' @return       Invisibly returns a named list with summary numbers.
 #' @export
+
 summary.epmfd_clean <- function(object, ...) {
 
   total <- nrow(object$clean_data) + object$n_removed

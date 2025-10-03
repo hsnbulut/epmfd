@@ -14,27 +14,59 @@
 \method{plot}{epmfd_clean}(x, ...)
 }
 \arguments{
-\item{x}{An \code{epmfd_scaled}, \code{epmfd_misfit},
-or \code{epmfd_clean} object.}
+\item{x}{An \code{epmfd_scaled}, \code{epmfd_misfit}, or \code{epmfd_clean}
+object.}
 
-\item{...}{Additional aesthetics or layers passed to
-\code{ggplot2} geoms.}
+\item{...}{Additional aesthetics or layers forwarded to the underlying
+\pkg{ggplot2} geoms (e.g., \code{alpha}, \code{linewidth}).}
 }
 \value{
-A \code{ggplot2} object, a \code{patchwork} object,
-or a list of \code{ggplot2} objects.
+A single \code{ggplot2} object, a \code{patchwork} object (if
+available), or a list of \code{ggplot2} objects—depending on the
+class and whether combined layout is possible.
 }
 \description{
 Quick visual summaries for three object classes:
 \itemize{
-\item \strong{epmfd_scaled}: item-level summary (kept vs. removed)
-and quality-statistic histogram.
-\item \strong{epmfd_misfit}: misfit counts per statistic
-and overall misfit ratio.
-\item \strong{epmfd_clean}: bar plot of remaining vs. removed persons.
+\item \strong{epmfd_scaled}: Item-level retention summary (Kept vs Removed)
+and a quality-statistic histogram (either discrimination \code{a} for
+\emph{mirt} or scalability \code{H_i} for \emph{mokken}).
+\item \strong{epmfd_misfit}: Bar plot of misfit counts per statistic and a
+global bar summarizing overall misfit ratio.
+\item \strong{epmfd_clean}: Bar plot comparing remaining vs removed persons.
 }
 }
 \details{
 If the \pkg{patchwork} package is installed, paired plots are stacked
-vertically; otherwise a list of two \code{ggplot2} objects is returned.
+vertically and returned as a single \emph{patchwork} object; otherwise a
+list of two \code{ggplot2} objects is returned.
+}
+\section{Dependencies}{
+
+These methods use \pkg{ggplot2}. For \code{epmfd_scaled} objects fitted with
+\emph{mirt}, the method accesses model coefficients via \pkg{mirt} if that
+package is installed (it is not required for \emph{mokken}). Stacking
+multiple plots uses \pkg{patchwork} when available.
+}
+
+\examples{
+\dontrun{
+# Scaled object
+p_scaled <- plot(scaled_obj)               # item retention + quality histogram
+
+# Misfit object
+p_mf <- plot(misfit_obj)                   # per-statistic counts + overall ratio
+
+# Cleaned object
+p_cl <- plot(clean_obj)                    # remaining vs removed persons
+
+# Add ggplot2 options through '...'
+plot(misfit_obj, alpha = 0.8)
+}
+
+}
+\seealso{
+\code{\link{plot_misfit}} for 2D/3D scatter visualizations of
+person-level misfit, and \code{\link{misfit_epmfd}} / \code{\link{clean_epmfd}}
+for producing the inputs to these plots.
 }

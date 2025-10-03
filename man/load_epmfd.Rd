@@ -2,21 +2,57 @@
 % Please edit documentation in R/load_epmfd.R
 \name{load_epmfd}
 \alias{load_epmfd}
-\title{Load and validate data for epmfd workflow}
+\title{Load and validate raw data for the epmfd workflow}
 \usage{
 load_epmfd(data, id_col = NULL, likert_levels = NULL)
 }
 \arguments{
-\item{data}{A data.frame / tibble: rows = persons, columns = items.}
+\item{data}{A data.frame or tibble with persons in rows and items in columns.
+All item responses must be integers in \code{1:K}, possibly with
+missing values.}
 
-\item{id_col}{Optional \if{html}{\out{<character>}}: column name holding unique IDs.}
+\item{id_col}{Optional \code{character} string giving the column name
+containing unique person identifiers. If \code{NULL}, a simple
+integer sequence \code{1:n} is used.}
 
-\item{likert_levels}{Optional \if{html}{\out{<integer>}}: maximum category K; if NULL
-it is inferred from the data.}
+\item{likert_levels}{Optional \code{integer} specifying the maximum category
+value (K). If \code{NULL}, K is inferred automatically as the
+maximum observed value in the data.}
 }
 \value{
-An object of class \code{epmfd_raw}.
+An object of class \code{epmfd_raw}, a list with elements:
+\itemize{
+\item \code{data}: A data.frame of ordered-factor responses
+\item \code{id}: Vector of person IDs
+\item \code{K}: Maximum number of categories per item
+}
 }
 \description{
-Load and validate data for epmfd workflow
+\code{load_epmfd()} prepares raw item-response data for subsequent
+functions in the epmfd workflow. It validates input, ensures that all
+item responses fall within the expected range of categories, converts
+items to ordered factors, and attaches person IDs.
+}
+\details{
+Each column of \code{data} is validated to ensure responses are within
+\code{1:K}. Values outside this range cause an error. Missing values
+are allowed and reported.
+}
+\examples{
+\dontrun{
+# Example: 5 persons × 3 items, responses 1–4
+df <- data.frame(
+  Pid = paste0("P", 1:5),
+  Item1 = c(1, 2, 3, 2, 1),
+  Item2 = c(2, 3, 4, 2, 1),
+  Item3 = c(3, 4, 1, 2, 2)
+)
+
+raw <- load_epmfd(df, id_col = "Pid", likert_levels = 4)
+str(raw)
+}
+
+}
+\seealso{
+\code{\link[=scale_epmfd]{scale_epmfd()}}, \code{\link[=misfit_epmfd]{misfit_epmfd()}}
 }

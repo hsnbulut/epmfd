@@ -2,36 +2,82 @@
 % Please edit documentation in R/export_epmfd.R
 \name{export_epmfd}
 \alias{export_epmfd}
-\title{Export epmfd results to disk}
+\title{Export epmfd objects to disk}
 \usage{
 export_epmfd(
   object,
   dir = ".",
   prefix = NULL,
-  format = c("csv", "xlsx"),
-  save_rds = TRUE
+  format = c("csv", "xlsx", "sav"),
+  save_rds = FALSE,
+  include_misfit = FALSE
 )
 }
 \arguments{
 \item{object}{One of: \code{epmfd_scaled}, \code{epmfd_misfit}, \code{epmfd_clean}.}
 
-\item{dir}{Target directory. Default = current working directory.}
+\item{dir}{Target directory. Default is the current working directory (\code{"."}).
+The directory is created if it does not exist.}
 
-\item{prefix}{File prefix. If \code{NULL}, object class is used.}
+\item{prefix}{File name prefix (without extension). If \code{NULL}, the first
+class name of \code{object} is used (e.g., \code{"epmfd_clean"}).}
 
-\item{format}{\code{"csv"} (default) or \code{"xlsx"}.  Requires \pkg{openxlsx}
-when \code{"xlsx"} is chosen.}
+\item{format}{Output format; one of \code{"csv"} (default), \code{"xlsx"}, or \code{"sav"}.
+\itemize{
+\item \code{"csv"}: written via \pkg{readr} (\code{readr::write_csv()}).
+\item \code{"xlsx"}: requires \pkg{openxlsx} (\code{openxlsx::write.xlsx()}).
+\item \code{"sav"}: SPSS format; requires \pkg{haven} (\code{haven::write_sav()}).
+}}
 
-\item{save_rds}{Logical.  Also save the object as \verb{<prefix>.rds}.}
+\item{save_rds}{Logical; if \code{TRUE}, also saves the \code{object} as \verb{<prefix>.rds}
+in \code{dir} via \code{saveRDS()}.}
+
+\item{include_misfit}{Logical; if \code{TRUE}, writes misfit tables when available
+(see Details). Default = \code{FALSE}.}
 }
 \value{
-Invisible path(s) of the written file(s).
+(Invisibly) a character vector of file paths that were written.
 }
 \description{
-Export epmfd results to disk
+\code{export_epmfd()} writes commonly used tables from \verb{epmfd_*} objects to
+CSV / Excel / SPSS files, and (optionally) saves the object itself as an RDS.
 }
+\details{
+What gets written depends on the object class:
+\itemize{
+\item \strong{\code{epmfd_clean}}: always writes the cleaned person-by-item data
+(\verb{<prefix>_clean.<ext>}). If \code{include_misfit = TRUE} and a misfit
+object is attached, also writes the misfit table (\verb{<prefix>_misfit.<ext>}).
+\item \strong{\code{epmfd_misfit}}: if \code{include_misfit = TRUE}, writes the
+misfit table (\verb{<prefix>_misfit.<ext>}).
+\item \strong{\code{epmfd_scaled}}: writes a one-column-per-item summary indicating
+which items were kept or removed (\verb{<prefix>_scale.<ext>}).
+}
+
+When \code{format = "sav"}, logical columns are converted to labelled factors
+(\code{FALSE}/\code{TRUE}) for SPSS compatibility. Writing \code{.sav} does not support list
+columns; the function aborts if such columns are present.
+}
+\section{File naming}{
+
+Files are named \verb{<prefix>_<name>.<format>} and placed under \code{dir}. For example:
+\code{study1_clean.csv}, \code{study1_misfit.xlsx}, or \code{study1_scale.sav}.
+}
+
 \examples{
 \dontrun{
-export_epmfd(clean_obj, dir = "results", prefix = "study1")
+# Cleaned object: write cleaned data (CSV) and also save RDS
+export_epmfd(clean_obj, dir = "results", prefix = "study1",
+             format = "csv", save_rds = TRUE)
+
+# Misfit object: write misfit table to SPSS
+export_epmfd(misfit_obj, dir = "out", format = "sav", include_misfit = TRUE)
+
+# Scaled object: write kept/removed item status as Excel
+export_epmfd(scaled_obj, dir = "out", prefix = "scaleA", format = "xlsx")
 }
+
+}
+\seealso{
+\code{\link[=saveRDS]{saveRDS()}}, \pkg{readr}, \pkg{openxlsx}, \pkg{haven}
 }

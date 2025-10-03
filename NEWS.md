@@ -1,3 +1,5 @@
+# epmfd 1.0.1
+
 # epmfd 0.4.1
 
 -   **Fixed `plot(…)` for Mokken mode:** the histogram now correctly uses `aes(x = x$Hi)` so that `plot(scaled)` no longer throws a “PANEL size” error when `method = "mokken"`.

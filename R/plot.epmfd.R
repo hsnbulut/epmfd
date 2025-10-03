@@ -2,23 +2,51 @@
 #'
 #' Quick visual summaries for three object classes:
 #' \itemize{
-#'   \item \strong{epmfd_scaled}: item-level summary (kept vs. removed)
-#'         and quality-statistic histogram.
-#'   \item \strong{epmfd_misfit}: misfit counts per statistic
-#'         and overall misfit ratio.
-#'   \item \strong{epmfd_clean}: bar plot of remaining vs. removed persons.
+#'   \item \strong{epmfd_scaled}: Item-level retention summary (Kept vs Removed)
+#'         and a quality-statistic histogram (either discrimination \code{a} for
+#'         \emph{mirt} or scalability \code{H_i} for \emph{mokken}).
+#'   \item \strong{epmfd_misfit}: Bar plot of misfit counts per statistic and a
+#'         global bar summarizing overall misfit ratio.
+#'   \item \strong{epmfd_clean}: Bar plot comparing remaining vs removed persons.
 #' }
 #'
 #' If the \pkg{patchwork} package is installed, paired plots are stacked
-#' vertically; otherwise a list of two \code{ggplot2} objects is returned.
+#' vertically and returned as a single \emph{patchwork} object; otherwise a
+#' list of two \code{ggplot2} objects is returned.
 #'
-#' @param x   An \code{epmfd_scaled}, \code{epmfd_misfit},
-#'            or \code{epmfd_clean} object.
-#' @param ... Additional aesthetics or layers passed to
-#'            \code{ggplot2} geoms.
+#' @section Dependencies:
+#' These methods use \pkg{ggplot2}. For \code{epmfd_scaled} objects fitted with
+#' \emph{mirt}, the method accesses model coefficients via \pkg{mirt} if that
+#' package is installed (it is not required for \emph{mokken}). Stacking
+#' multiple plots uses \pkg{patchwork} when available.
 #'
-#' @return A \code{ggplot2} object, a \code{patchwork} object,
-#'         or a list of \code{ggplot2} objects.
+#' @param x   An \code{epmfd_scaled}, \code{epmfd_misfit}, or \code{epmfd_clean}
+#'            object.
+#' @param ... Additional aesthetics or layers forwarded to the underlying
+#'            \pkg{ggplot2} geoms (e.g., \code{alpha}, \code{linewidth}).
+#'
+#' @return A single \code{ggplot2} object, a \code{patchwork} object (if
+#'         available), or a list of \code{ggplot2} objects—depending on the
+#'         class and whether combined layout is possible.
+#'
+#' @seealso \code{\link{plot_misfit}} for 2D/3D scatter visualizations of
+#' person-level misfit, and \code{\link{misfit_epmfd}} / \code{\link{clean_epmfd}}
+#' for producing the inputs to these plots.
+#'
+#' @examples
+#' \dontrun{
+#' # Scaled object
+#' p_scaled <- plot(scaled_obj)               # item retention + quality histogram
+#'
+#' # Misfit object
+#' p_mf <- plot(misfit_obj)                   # per-statistic counts + overall ratio
+#'
+#' # Cleaned object
+#' p_cl <- plot(clean_obj)                    # remaining vs removed persons
+#'
+#' # Add ggplot2 options through '...'
+#' plot(misfit_obj, alpha = 0.8)
+#' }
 #'
 #' @name plot_epmfd
 #' @importFrom ggplot2 ggplot aes geom_col geom_text geom_histogram
@@ -39,7 +67,7 @@ plot.epmfd_scaled <- function(x, ...) {
 
   p_bar <- ggplot2::ggplot(df_bar, ggplot2::aes(Status, Count, fill = Status)) +
     ggplot2::geom_col(show.legend = FALSE, ...) +
-    ggplot2::geom_text(ggplot2::aes(label = Count), vjust = -0.2) +
+    ggplot2::geom_text(ggplot2::aes(label = Count)) +
     ggplot2::labs(title = "Item retention summary",
                   x = NULL, y = "Number of items") +
     ggplot2::theme_minimal()
@@ -99,7 +127,7 @@ plot.epmfd_misfit <- function(x, ...) {
   p_ratio <- ggplot2::ggplot(df_ratio,
                              ggplot2::aes(Status, Count, fill = Status)) +
     ggplot2::geom_col(show.legend = FALSE, ...) +
-    ggplot2::geom_text(ggplot2::aes(label = Count), vjust = -0.2) +
+    ggplot2::geom_text(ggplot2::aes(label = Count)) +
     ggplot2::labs(title = sprintf("Overall misfit ratio = %.1f%%",
                                   100 * ratio),
                   x = NULL, y = "Number of persons") +
@@ -123,7 +151,7 @@ plot.epmfd_clean <- function(x, ...) {
 
   ggplot2::ggplot(df, ggplot2::aes(Group, Count, fill = Group)) +
     ggplot2::geom_col(show.legend = FALSE, ...) +
-    ggplot2::geom_text(ggplot2::aes(label = Count), vjust = -0.2) +
+    ggplot2::geom_text(ggplot2::aes(label = Count)) +
     ggplot2::labs(title = "Persons before vs after cleaning",
                   x = NULL, y = "Number of persons") +
     ggplot2::theme_minimal()

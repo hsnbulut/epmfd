@@ -2,21 +2,71 @@
 % Please edit documentation in R/misfit_epmfd.R
 \name{misfit_epmfd}
 \alias{misfit_epmfd}
-\title{Compute person-fit statistics (polytomous)}
+\title{Compute person-fit statistics (polytomous data)}
 \usage{
-misfit_epmfd(object, stats = c("auto", "lpz", "Gp", "U3p"), alpha = 0.05)
+misfit_epmfd(object, stats = c("auto", "lpz", "Gnp", "U3p"), cut.off = "auto")
 }
 \arguments{
-\item{object}{An \code{epmfd_scaled} object.}
+\item{object}{An \code{epmfd_scaled} object (output of your scaling step).}
 
-\item{stats}{Character vector: any of \code{"auto"}, \code{"lpz"},
-\code{"Gp"} , \code{"U3p"}.}
+\item{stats}{Character vector choosing which statistics to compute.
+Allowed values: \code{"auto"}, \code{"lpz"}, \code{"Gnp"}, \code{"U3p"}.
+If \code{"auto"} is present, the set is chosen based on the detected
+scaling method:
+\itemize{
+\item for \code{"mirt"}: \code{c("lpz","Gnp","U3p")}
+\item for \code{"mokken"}: \code{c("Gnp","U3p")}
+}}
 
-\item{alpha}{Significance level (default 0.05).}
+\item{cut.off}{Cut-off for \code{Gnp} and \code{U3p}. Either \code{"auto"} (default; uses
+\pkg{PerFit}’s \code{cutoff()} with its implied tail), or a single numeric value
+(interpreted with tail \code{"upper"} for both \code{Gnp} and \code{U3p}). \code{lpz} uses a
+fixed lower-tail cut-off of \code{-1.645}.}
 }
 \value{
-An \code{epmfd_misfit} object.
+An \code{epmfd_misfit} list with:
+\itemize{
+\item \code{scaled}: the input \code{epmfd_scaled} object
+\item \code{method}: detected method (\code{"mirt"} or \code{"mokken"})
+\item \code{stats}: actually computed statistics (subset of \code{c("lpz","Gnp","U3p")})
+\item \code{thresholds}: named list of lists with \code{value} and \code{tail}
+\item \code{scores}: named list of numeric score vectors per statistic
+\item \code{table}: a tibble with \code{id}, one logical column per statistic,
+\code{misfit_any} (OR over selected stats), and \code{misfit_final}
+(see Details)
+}
 }
 \description{
-Compute person-fit statistics (polytomous)
+\code{misfit_epmfd()} computes selected person-fit statistics for polytomous
+responses and returns an \code{epmfd_misfit} object with scores, thresholds,
+and logical flags per person.
+}
+\details{
+\strong{Auto vs manual decision} for \code{misfit_final}:
+\itemize{
+\item If \code{stats} contains \code{"auto"}:
+\itemize{
+\item for \code{"mokken"}: \code{misfit_final = Gnp & U3p}
+\item for \code{"mirt"}:   \code{misfit_final = (lpz & Gnp & U3p)} if any such rows exist,
+otherwise fallback to \code{lpz} only.
+}
+\item If \code{stats} is manual (no \code{"auto"}): \code{misfit_final} is the AND over the
+selected statistics (if only one selected, it is used directly).
+}
+
+All PerFit statistics for polytomous items assume a \emph{common number of
+categories per item}. The function checks this and errors otherwise.
+}
+\examples{
+\dontrun{
+# Assume `sc` is an epmfd_scaled object
+mf1 <- misfit_epmfd(sc, stats = "auto")             # method-dependent set
+mf2 <- misfit_epmfd(sc, stats = c("Gnp","U3p"))     # manual selection
+mf3 <- misfit_epmfd(sc, stats = c("lpz","Gnp"), cut.off = 0.45)
+
+# Inspect flags
+head(mf1$table)
+mf1$thresholds
+}
+
 }

@@ -29,50 +29,30 @@ remotes::install_github("hsnbulut/epmfd")
 
 # Quick-start example
 
-The chunk below simulates **200 persons × 12 Likert items** (including a deliberately weak item and 5 random-response persons) and walks through the complete workflow.
-
 ```{r}
 library(epmfd)
 library(mirt)
 library(mokken)
 
-set.seed(42)
+raw    <- load_epmfd(sampledata)
+scaled <- scale_epmfd(raw, method = "auto")
+misfit <- misfit_epmfd(scaled)
+clean  <- clean_epmfd(misfit, criterion = "union")
 
-## --- 1. simulate data -------------------------------------------------
-m  <- 12; K <- 5
-a <- c(runif(m-1, .8, 1.2), .2)                 # last item weak
-d <- matrix(sort(runif(m*(K-1), -1.5, 1.5)),
-            m, K-1, byrow = TRUE)
+## 3. inspect
+print(misfit)
+plot(scaled)
+plot(misfit)
+plot(clean)
+plot_misfit(misfit, stats = c("Gnp","U3p","lpz"),
+            threeD = TRUE, any = TRUE, label_ids = TRUE)
 
-normal <- simdata(a, d, itemtype = "graded",
-                  Theta = matrix(rnorm(195)))
-bad    <- matrix(sample(1:K, 5*m, TRUE), 5, m)
-toy    <- as.data.frame(rbind(normal, bad))
-names(toy) <- paste0("Item", 1:m)
-
-## --- 2. epmfd pipeline -----------------------------------------------
-raw    <- load_epmfd(toy)
-scaled <- scale_epmfd(raw, method = "auto")         # weak item removed
-misfit <- misfit_epmfd(scaled, alpha = .05)         # lpz, Gp, U3p
-clean  <- clean_epmfd(misfit, criterion = "union")  # 5 persons removed
-
-## --- 3. inspect -------------------------------------------------------
-print(misfit)         # textual summary
-plot(scaled)          # bar + quality histogram
-plot(misfit)          # misfit bars
-plot(clean)           # remaining vs removed
-plot_misfit_scatter(misfit, x_stat = "U3p",
-                    y_stat = "Gp",
-                    z_stat = "lpz",
-                    bubble = TRUE,
-                    label_ids = TRUE)
-
-## --- 4. export --------------------------------------------------------
-export_epmfd(clean, dir = "demo_out", prefix = "study1", format = "csv")
+## 4. export
+export_epmfd(clean, dir = "demo_out", 
+             prefix = "study1", 
+             format = "sav")
 
 ```
-
-Output files:
 
 ---
 demo_out/
@@ -111,7 +91,7 @@ scale_epmfd(raw, method = "mokken", H_thr = 0)
 
 When method = "auto" (the default), the function uses:
 
--   "mokken" if the sample size is under 100,
+-   "mokken" if the sample size is under 500,
 
 -   "mirt" otherwise.
 
@@ -128,14 +108,14 @@ scale_epmfd(raw, method = "auto", a_thr = 0.6, H_thr = 0.35)
 
 # Function Map
 
-| Stage      | Function                             | Key options                                                 |
+| Stage      | Function                  | Key options                                    |
 |-------------------|---------------------|--------------------------------|
-| **Load**   | `load_epmfd()`                       | `id_col`, `K` (auto detected)                               |
-| **Scale**  | `scale_epmfd()`                      | `method = "auto"` / `"mirt"` / `"mokken"`, `a_thr`, `H_thr` |
-| **Misfit** | `misfit_epmfd()`                     | `alpha`, `stats = c("lpz","Gp","U3p")`                      |
-| **Clean**  | `clean_epmfd()`                      | `criterion = "union"` / `"intersection"`                    |
-| **Plot**   | `plot()` S3, `plot_misfit_scatter()` | —                                                           |
-| **Export** | `export_epmfd()`                     | `dir`, `prefix`, \`format = "csv"                           |
+| **Load**   | `load_epmfd()`            | `id_col`, `likert_levels` (auto detected)      |
+| **Scale**  | `scale_epmfd()`           | `method`, `a_thr`, `H_thr`                     |
+| **Misfit** | `misfit_epmfd()`          | `stats`, `cut.off`                             |
+| **Clean**  | `clean_epmfd()`           | `criterion = "union"` / `"intersection"`       |
+| **Plot**   | `plot()`, `plot_misfit()` | 2D/3D diagnostics                              |
+| **Export** | `export_epmfd()`          | `dir`, `prefix`, `format = "csv"/"xlsx"/"sav"` |
 
 # License
 

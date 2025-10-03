@@ -1,4 +1,11 @@
 ^epmfd\.Rproj$
 ^\.Rproj\.user$
-^README\.Rmd$
+^README_files$
+^README.html$
 ^LICENSE\.md$
+^\.DS_Store$
+^\.git$
+^\.gitignore$
+^\.github$
+^CRAN-SUBMISSION$
+^\.vscode$
