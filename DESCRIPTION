@@ -1,6 +1,6 @@
 Package: epmfd
-Title: Easy Person MisFit Detection
-Version: 1.0.4
+Title: Exploratory and Person/Item Misfit Diagnostics for Polytomous Data
+Version: 1.0.5
 Authors@R: c(
     person("Hasan", "Bulut",
            email   = "hasan.bulut@omu.edu.tr",
@@ -38,5 +38,5 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Depends: 
-    R (>= 3.5)
+    R (>= 4.1.0)
 LazyData: true

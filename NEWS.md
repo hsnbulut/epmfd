@@ -1,4 +1,13 @@
+# epmfd 1.0.5
+
+-   Add `Depends: R (>= 4.1.0)` to satisfy usage of base pipe and lambda syntax.
+-   Move example `.sav` file to `inst/extdata/` and ignore build artefacts.
+-   Add `inst/WORDLIST` for technical terms (GRM, Mokken, mirt, misfit).
+-   Minor DESCRIPTION cleanup.
+
 # epmfd 1.0.4
+
+-   plot_misfit function has been generated. plot_misfit_scatter function has been removed.
 
 # epmfd 1.0.3
 
