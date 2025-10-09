@@ -54,19 +54,8 @@ otherwise fallback to \code{lpz} only.
 selected statistics (if only one selected, it is used directly).
 }
 
-All PerFit statistics for polytomous items assume a \emph{common number of
-categories per item}. The function checks this and errors otherwise.
-}
-\examples{
-\dontrun{
-# Assume `sc` is an epmfd_scaled object
-mf1 <- misfit_epmfd(sc, stats = "auto")             # method-dependent set
-mf2 <- misfit_epmfd(sc, stats = c("Gnp","U3p"))     # manual selection
-mf3 <- misfit_epmfd(sc, stats = c("lpz","Gnp"), cut.off = 0.45)
-
-# Inspect flags
-head(mf1$table)
-mf1$thresholds
-}
-
+Polytomous PerFit statistics assume a \strong{common design K} (number of
+categories) across items. This function uses \code{object$raw$K} as the global
+design K and maps item responses to \strong{0..K-1} without compressing per-item
+gaps (unused categories are allowed and do not trigger an error).
 }

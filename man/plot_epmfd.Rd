@@ -50,7 +50,8 @@ multiple plots uses \pkg{patchwork} when available.
 }
 
 \examples{
-\dontrun{
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\donttest{
 # Scaled object
 p_scaled <- plot(scaled_obj)               # item retention + quality histogram
 
@@ -63,7 +64,7 @@ p_cl <- plot(clean_obj)                    # remaining vs removed persons
 # Add ggplot2 options through '...'
 plot(misfit_obj, alpha = 0.8)
 }
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link{plot_misfit}} for 2D/3D scatter visualizations of

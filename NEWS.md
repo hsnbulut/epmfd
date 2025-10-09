@@ -1,3 +1,9 @@
+# epmfd 1.0.6
+
+-   Add references.
+-   Fixed problems in the clean_epmfd() function.
+-   Fixed problems in the misfit_epmfd() function.
+
 # epmfd 1.0.5
 
 -   Add `Depends: R (>= 4.1.0)` to satisfy usage of base pipe and lambda syntax.

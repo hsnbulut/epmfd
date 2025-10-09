@@ -1,7 +1,8 @@
-#' Print method for `epmfd_misfit` objects
-#'
-#' @param x   An object of class `epmfd_misfit`.
-#' @param ... Further arguments passed to [utils::head()].
+#' @title Print Method for epmfd_misfit Objects
+#' @description Prints summary information for an \code{epmfd_misfit} object.
+#' @param x An object of class \code{epmfd_misfit}.
+#' @param ... Further arguments passed to or from other methods.
+#' @return The input object \code{x}, returned (invisibly) after printing.
 #' @export
 print.epmfd_misfit <- function(x, ...) {
 

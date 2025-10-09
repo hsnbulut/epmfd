@@ -84,7 +84,8 @@ for 3D, \pkg{plotly} (required only when \code{threeD = TRUE}). Optional labels 
 2D use \pkg{ggrepel} when installed.
 }
 \examples{
-\dontrun{
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\donttest{
 # Suppose 'mf' is an epmfd_misfit with scores Gnp, U3p, lpz
 
 # 2D: single plot
@@ -99,7 +100,7 @@ plot_misfit(mf, stats = c("Gnp","U3p","lpz"), threeD = TRUE, planes = TRUE)
 # 3D: points only (no planes)
 plot_misfit(mf, stats = c("Gnp","U3p","lpz"), threeD = TRUE, planes = FALSE)
 }
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=misfit_epmfd]{misfit_epmfd()}} for computing statistics and thresholds;

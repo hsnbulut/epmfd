@@ -29,7 +29,6 @@
 #' are allowed and reported.
 #'
 #' @examples
-#' \dontrun{
 #' # Example: 5 persons × 3 items, responses 1–4
 #' df <- data.frame(
 #'   Pid = paste0("P", 1:5),
@@ -40,7 +39,7 @@
 #'
 #' raw <- load_epmfd(df, id_col = "Pid", likert_levels = 4)
 #' str(raw)
-#' }
+#'
 #'
 #' @seealso [scale_epmfd()], [misfit_epmfd()]
 #'

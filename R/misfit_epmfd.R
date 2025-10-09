@@ -38,20 +38,10 @@
 #' - If `stats` is manual (no `"auto"`): `misfit_final` is the AND over the
 #'   selected statistics (if only one selected, it is used directly).
 #'
-#' All PerFit statistics for polytomous items assume a *common number of
-#' categories per item*. The function checks this and errors otherwise.
-#'
-#' @examples
-#' \dontrun{
-#' # Assume `sc` is an epmfd_scaled object
-#' mf1 <- misfit_epmfd(sc, stats = "auto")             # method-dependent set
-#' mf2 <- misfit_epmfd(sc, stats = c("Gnp","U3p"))     # manual selection
-#' mf3 <- misfit_epmfd(sc, stats = c("lpz","Gnp"), cut.off = 0.45)
-#'
-#' # Inspect flags
-#' head(mf1$table)
-#' mf1$thresholds
-#' }
+#' Polytomous PerFit statistics assume a **common design K** (number of
+#' categories) across items. This function uses `object$raw$K` as the global
+#' design K and maps item responses to **0..K-1** without compressing per-item
+#' gaps (unused categories are allowed and do not trigger an error).
 #'
 #' @export
 misfit_epmfd <- function(object,
@@ -80,41 +70,72 @@ misfit_epmfd <- function(object,
     if (!length(stats)) stop("`stats` must include at least one of: 'lpz', 'Gnp', 'U3p'.")
   }
 
-  ## 3) Prepare polytomous matrix for PerFit: 0..(Ncat-1)
+  ## 3) Prepare polytomous matrix for PerFit using global design K (0..K-1, no compression)
+  kept_items <- object$kept
   X_df <- object$raw$data |>
-    dplyr::select(dplyr::all_of(object$kept))
+    dplyr::select(dplyr::all_of(kept_items))
 
-  normalize0 <- function(v) {
-    v <- as.integer(v)
-    u <- sort(unique(v))
-    if (identical(u, 0:(length(u)-1L))) return(v)
-    if (identical(u, 1:length(u)))      return(v - 1L)
-    map <- setNames(0:(length(u)-1L), u)
-    as.integer(map[as.character(v)])
+  # Global design K (required)
+  K_global <- object$raw$K
+  if (is.null(K_global) || !is.finite(K_global)) {
+    max_val <- suppressWarnings(max(as.matrix(X_df), na.rm = TRUE))
+    min_val <- suppressWarnings(min(as.matrix(X_df), na.rm = TRUE))
+    if (is.finite(max_val) && is.finite(min_val)) {
+      if (min_val >= 1 && abs(min_val - round(min_val)) < 1e-8) {
+        K_global <- as.integer(round(max_val))
+      } else if (min_val >= 0 && abs(min_val - round(min_val)) < 1e-8) {
+        K_global <- as.integer(round(max_val) + 1L)
+      }
+    }
+  }
+  if (is.null(K_global) || !is.finite(K_global)) {
+    stop("Cannot determine global K (number of categories). Ensure `object$raw$K` is set.")
+  }
+  K_global <- as.integer(K_global)
+
+  to0..Kminus1 <- function(v, K) {
+    if (all(is.na(v))) return(as.integer(v))
+    vv <- as.numeric(v)
+    if (!all(is.na(vv) | (abs(vv - round(vv)) < 1e-8)))
+      stop("Polytomous data must be integer-coded per item.")
+    vv <- as.integer(round(vv))
+    if (min(vv, na.rm = TRUE) >= 1 && max(vv, na.rm = TRUE) <= K) {
+      vv <- vv - 1L
+    }
+    if (min(vv, na.rm = TRUE) < 0L || max(vv, na.rm = TRUE) > (K - 1L)) {
+      stop("Found values outside 0..", K - 1L,
+           ". Ensure all items use 0..K-1 or 1..K coding with K = ", K, ".")
+    }
+    vv
   }
 
-  X_df[] <- lapply(X_df, normalize0)
+  X_df[] <- lapply(X_df, to0..Kminus1, K = K_global)
   X <- as.matrix(X_df)
   storage.mode(X) <- "numeric"
 
-  ncat_by_item <- apply(X, 2, function(col) length(unique(col)))
-  if (length(unique(ncat_by_item)) != 1L) {
-    stop(
-      "PerFit polytomous statistics require a common number of categories ",
-      "across items. Found Ncat per item: ",
-      paste0(ncat_by_item, collapse = ", "), "."
-    )
+  ncat_obs <- apply(X, 2, function(col) length(unique(col[!is.na(col)])))
+  if (any(ncat_obs < K_global)) {
+    message("Note: Some items do not use all ", K_global, " categories in the sample (sparse usage).")
   }
-  Ncat <- as.integer(unique(ncat_by_item))
+
+  Ncat <- K_global
   IDs  <- object$raw$id
 
-  ## 4) 4) Helpers
+  ## 4) Helpers
+  .as_num <- function(x) {
+    # robustly coerce to a plain numeric vector without names
+    y <- as.numeric(unlist(x, use.names = FALSE))
+    if (!length(y)) stop("Empty score vector encountered.")
+    y
+  }
   .flag_by_cutoff <- function(scores, cutoff_obj, default_tail = "upper") {
+    scores <- as.numeric(scores)
     cutv <- as.numeric(cutoff_obj$Cutoff)[1L]
     tail <- tolower(as.character((cutoff_obj$Tail %||% default_tail)))[1L]
     if (tail == "lower") scores < cutv else scores > cutv
   }
   .flag_by_numeric <- function(scores, thr, tail = "upper") {
+    scores <- as.numeric(scores)
     thr  <- as.numeric(thr)[1L]
     tail <- tolower(as.character(tail))[1L]
     if (tail == "lower") scores < thr else scores > thr
@@ -126,9 +147,7 @@ misfit_epmfd <- function(object,
 
   if ("Gnp" %in% stats) {
     Gobj <- PerFit::Gnormed.poly(X, Ncat = Ncat)
-    g    <- as.vector(Gobj$PFscores)
-    names(g)<-"Gnp"
-    g<-sapply(g,as.numeric)
+    g    <- .as_num(Gobj$PFscores)
     scores$Gnp <- g
     if (identical(cut.off, "auto")) {
       Gcut <- PerFit::cutoff(Gobj)
@@ -144,9 +163,7 @@ misfit_epmfd <- function(object,
 
   if ("U3p" %in% stats) {
     Uobj <- PerFit::U3poly(X, Ncat = Ncat)
-    u    <- as.vector(Uobj$PFscores)
-    names(u)<-"U3p"
-    u<-sapply(u,as.numeric)
+    u    <- .as_num(Uobj$PFscores)
     scores$U3p <- u
     if (identical(cut.off, "auto")) {
       Ucut <- PerFit::cutoff(Uobj)
@@ -162,9 +179,7 @@ misfit_epmfd <- function(object,
 
   if ("lpz" %in% stats) {
     Lobj <- PerFit::lzpoly(X, Ncat = Ncat)
-    l    <- as.vector(Lobj$PFscores)
-    names(l)<-"lpz"
-    l<-sapply(l,as.numeric)
+    l    <- .as_num(Lobj$PFscores)
     scores$lpz <- l
     thresholds$lpz <- list(type="fixed", value=-1.645, tail="lower")
     flags$lpz <- l < -1.645
@@ -174,17 +189,14 @@ misfit_epmfd <- function(object,
   tbl <- data.frame(id = IDs, stringsAsFactors = FALSE)
   for (nm in names(flags)) tbl[[nm]] <- .coalesce_logical(as.logical(flags[[nm]]))
 
-  # OR over selected flags
   if (length(names(flags))) {
     tbl$misfit_any <- Reduce(`|`, lapply(names(flags), function(nm) tbl[[nm]]))
   } else {
     tbl$misfit_any <- FALSE
   }
 
-  # misfit_final:
   if (auto_mode) {
     if (method == "mokken") {
-      # auto → classical rule
       g <- tbl[["Gnp"]] %||% FALSE
       u <- tbl[["U3p"]] %||% FALSE
       tbl$misfit_final <- g & u
@@ -196,7 +208,6 @@ misfit_epmfd <- function(object,
       tbl$misfit_final <- if (any(all3)) all3 else lp
     }
   } else {
-
     if (length(names(flags))) {
       tbl$misfit_final <- Reduce(`&`, lapply(names(flags), function(nm) tbl[[nm]]))
     } else {
@@ -204,7 +215,6 @@ misfit_epmfd <- function(object,
     }
   }
 
-  ## 7) Output
   out <- list(
     scaled     = object,
     method     = method,
@@ -216,7 +226,3 @@ misfit_epmfd <- function(object,
   class(out) <- c("epmfd_misfit","list")
   out
 }
-
-
-
-

@@ -66,8 +66,8 @@
 #' @seealso [misfit_epmfd()] for computing statistics and thresholds;
 #'          [clean_epmfd()] for removing misfitting persons.
 #'
-#' @examples
-#' \dontrun{
+#' @examplesIf FALSE
+#' \donttest{
 #' # Suppose 'mf' is an epmfd_misfit with scores Gnp, U3p, lpz
 #'
 #' # 2D: single plot

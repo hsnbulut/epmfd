@@ -6,7 +6,7 @@
 \usage{
 export_epmfd(
   object,
-  dir = ".",
+  dir = NULL,
   prefix = NULL,
   format = c("csv", "xlsx", "sav"),
   save_rds = FALSE,
@@ -16,8 +16,9 @@ export_epmfd(
 \arguments{
 \item{object}{One of: \code{epmfd_scaled}, \code{epmfd_misfit}, \code{epmfd_clean}.}
 
-\item{dir}{Target directory. Default is the current working directory (\code{"."}).
-The directory is created if it does not exist.}
+\item{dir}{Target directory. If \code{NULL} (default), \strong{no files are written};
+instead, the function returns the tables as a named list.
+If provided, the directory must exist or will be created.}
 
 \item{prefix}{File name prefix (without extension). If \code{NULL}, the first
 class name of \code{object} is used (e.g., \code{"epmfd_clean"}).}
@@ -29,54 +30,89 @@ class name of \code{object} is used (e.g., \code{"epmfd_clean"}).}
 \item \code{"sav"}: SPSS format; requires \pkg{haven} (\code{haven::write_sav()}).
 }}
 
-\item{save_rds}{Logical; if \code{TRUE}, also saves the \code{object} as \verb{<prefix>.rds}
-in \code{dir} via \code{saveRDS()}.}
+\item{save_rds}{Logical; if \code{TRUE} and \code{dir} is provided, also saves the \code{object}
+as \verb{<prefix>.rds} in \code{dir} via \code{saveRDS()}.}
 
-\item{include_misfit}{Logical; if \code{TRUE}, writes misfit tables when available
+\item{include_misfit}{Logical; if \code{TRUE}, writes/returns misfit tables when available
 (see Details). Default = \code{FALSE}.}
 }
 \value{
-(Invisibly) a character vector of file paths that were written.
+If \code{dir} is \code{NULL}, a \strong{named list} containing the tables that would be
+written (e.g., \code{clean}, \code{misfit}, \code{scale}). If \code{dir} is non-\code{NULL}, (invisibly)
+a character vector of file paths that were written.
 }
 \description{
 \code{export_epmfd()} writes commonly used tables from \verb{epmfd_*} objects to
 CSV / Excel / SPSS files, and (optionally) saves the object itself as an RDS.
 }
 \details{
-What gets written depends on the object class:
+What is produced depends on the object class:
 \itemize{
-\item \strong{\code{epmfd_clean}}: always writes the cleaned person-by-item data
-(\verb{<prefix>_clean.<ext>}). If \code{include_misfit = TRUE} and a misfit
-object is attached, also writes the misfit table (\verb{<prefix>_misfit.<ext>}).
-\item \strong{\code{epmfd_misfit}}: if \code{include_misfit = TRUE}, writes the
-misfit table (\verb{<prefix>_misfit.<ext>}).
-\item \strong{\code{epmfd_scaled}}: writes a one-column-per-item summary indicating
-which items were kept or removed (\verb{<prefix>_scale.<ext>}).
+\item \strong{\code{epmfd_clean}}: cleaned person-by-item data (\code{clean});
+if \code{include_misfit = TRUE} and a misfit object is attached, also \code{misfit}.
+\item \strong{\code{epmfd_misfit}}: if \code{include_misfit = TRUE}, \code{misfit}.
+\item \strong{\code{epmfd_scaled}}: item status summary (\code{scale}).
 }
 
 When \code{format = "sav"}, logical columns are converted to labelled factors
 (\code{FALSE}/\code{TRUE}) for SPSS compatibility. Writing \code{.sav} does not support list
 columns; the function aborts if such columns are present.
 }
-\section{File naming}{
+\section{File naming (when \code{dir} is provided)}{
 
-Files are named \verb{<prefix>_<name>.<format>} and placed under \code{dir}. For example:
+Files are named \verb{<prefix>_<name>.<format>} under \code{dir}. For example:
 \code{study1_clean.csv}, \code{study1_misfit.xlsx}, or \code{study1_scale.sav}.
 }
 
 \examples{
-\dontrun{
-# Cleaned object: write cleaned data (CSV) and also save RDS
-export_epmfd(clean_obj, dir = "results", prefix = "study1",
-             format = "csv", save_rds = TRUE)
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\donttest{
+  # Minimal toy objects created inside the example ----
+  set.seed(1)
+  toy_clean <- data.frame(
+    I1 = sample(0:1, 6, TRUE),
+    I2 = sample(0:1, 6, TRUE)
+  )
+  toy_misfit <- data.frame(
+    person = 1:6, Gpn = runif(6), U3p = runif(6)
+  )
 
-# Misfit object: write misfit table to SPSS
-export_epmfd(misfit_obj, dir = "out", format = "sav", include_misfit = TRUE)
+  clean_obj <- structure(
+    list(clean_data = toy_clean,
+         misfit     = list(table = toy_misfit)),
+    class = "epmfd_clean"
+  )
 
-# Scaled object: write kept/removed item status as Excel
-export_epmfd(scaled_obj, dir = "out", prefix = "scaleA", format = "xlsx")
+  misfit_obj <- structure(
+    list(table = toy_misfit, method = "mokken"),
+    class = "epmfd_misfit"
+  )
+
+  scaled_obj <- structure(
+    list(kept = c("I1", "I2"), removed = character()),
+    class = "epmfd_scaled"
+  )
+
+  # 1) No writing: return list
+  lst <- export_epmfd(clean_obj, dir = NULL, include_misfit = TRUE)
+  str(lst)
+
+  # 2) Write to a temporary directory (CRAN policy)
+  tmpdir <- tempdir()
+  export_epmfd(clean_obj,  dir = tmpdir, prefix = "study1", format = "csv",
+               save_rds = TRUE)
+
+  # Optional formats guarded by Suggests (run only if installed)
+  if (requireNamespace("haven", quietly = TRUE)) {
+    export_epmfd(misfit_obj, dir = tmpdir, format = "sav",
+                 include_misfit = TRUE)
+  }
+  if (requireNamespace("openxlsx", quietly = TRUE)) {
+    export_epmfd(scaled_obj, dir = tmpdir, prefix = "scaleA",
+                 format = "xlsx")
+  }
 }
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=saveRDS]{saveRDS()}}, \pkg{readr}, \pkg{openxlsx}, \pkg{haven}

@@ -47,8 +47,8 @@
 #'
 #' @seealso [load_epmfd()], [misfit_epmfd()], [plot.epmfd_scaled()]
 #'
-#' @examples
-#' \dontrun{
+#' @examplesIf FALSE
+#' \donttest{
 #' # Example: scale raw data automatically
 #' raw <- load_epmfd(mydata, id_col = "ID", likert_levels = 4)
 #' sc1 <- scale_epmfd(raw, method = "auto")

@@ -33,8 +33,8 @@
 #' person-level misfit, and \code{\link{misfit_epmfd}} / \code{\link{clean_epmfd}}
 #' for producing the inputs to these plots.
 #'
-#' @examples
-#' \dontrun{
+#' @examplesIf FALSE
+#' \donttest{
 #' # Scaled object
 #' p_scaled <- plot(scaled_obj)               # item retention + quality histogram
 #'

@@ -2,15 +2,18 @@
 % Please edit documentation in R/helpers_epmfd.R
 \name{print.epmfd_misfit}
 \alias{print.epmfd_misfit}
-\title{Print method for \code{epmfd_misfit} objects}
+\title{Print Method for epmfd_misfit Objects}
 \usage{
 \method{print}{epmfd_misfit}(x, ...)
 }
 \arguments{
 \item{x}{An object of class \code{epmfd_misfit}.}
 
-\item{...}{Further arguments passed to \code{\link[utils:head]{utils::head()}}.}
+\item{...}{Further arguments passed to or from other methods.}
+}
+\value{
+The input object \code{x}, returned (invisibly) after printing.
 }
 \description{
-Print method for \code{epmfd_misfit} objects
+Prints summary information for an \code{epmfd_misfit} object.
 }

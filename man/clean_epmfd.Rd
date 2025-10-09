@@ -12,55 +12,65 @@ clean_epmfd(misfit, criterion = c("union", "intersection"))
 \item{criterion}{Character string, either \code{"union"} (default) or \code{"intersection"}.}
 }
 \value{
-An \code{epmfd_clean} list with the following elements:
+An \code{epmfd_clean} list with:
 \itemize{
 \item \code{raw}: An \code{epmfd_raw} object containing only the retained persons and
 items, directly usable in \code{\link[=scale_epmfd]{scale_epmfd()}}.
 \item \code{clean_data}: The cleaned raw data frame (persons × kept items).
 \item \code{n_removed}: Number of persons removed.
 \item \code{criterion}: The applied decision rule.
-\item \code{misfit}: The original \code{epmfd_misfit} object.
+\item \code{misfit}: The original \code{epmfd_misfit} object (as provided).
 }
 }
 \description{
 \code{clean_epmfd()} removes individuals flagged as misfitting according to
-a chosen rule and returns a cleaned dataset that can be directly passed
-to \code{\link[=scale_epmfd]{scale_epmfd()}}.
+a chosen decision rule and returns a cleaned dataset that can be passed
+directly to \code{\link[=scale_epmfd]{scale_epmfd()}}.
 }
 \details{
-The function relies on the columns in \code{misfit$table}:
+The function uses logical misfit indicators stored in \code{misfit$table},
+including:
 \itemize{
-\item \code{misfit_any}: Indicates whether at least one statistic flagged a person.
-\item \code{stats}: Names of the statistics used (e.g., \code{"Gnp"}, \code{"U3p"}, \code{"lpz"}).
+\item \code{misfit_any}: \code{TRUE} if at least one statistic flagged the person.
+\item Statistic-specific columns (e.g., \code{Gnp}, \code{U3p}, \code{lpz}) indicating
+per-statistic misfit decisions.
 }
-Persons are retained based on the selected criterion and only the
-kept items from \code{misfit$scaled$kept} are preserved.
+The set of statistics actually considered is taken from \code{misfit$stats}.
+Under the \code{"intersection"} rule, a person is removed only if \strong{all} of those
+statistics are \code{TRUE}. Internally, \code{rowSums(..., na.rm = TRUE)} is
+used so that \code{NA} values do not force removal (i.e., \code{NA} behaves
+as “not flagged” in the intersection count).
+
+Only items listed in \code{misfit$scaled$kept} are retained in the output.
+Person identifiers from the original raw object are preserved for the kept rows.
 }
 \section{Criterion}{
 
 \itemize{
-\item \code{"union"}: A person is removed if \strong{at least one} statistic (e.g., Gnp, U3p, lpz)
-flags them as misfitting. This is stricter.
-\item \code{"intersection"}: A person is removed only if \strong{all} statistics flag them
+\item \code{"union"} (default): A person is removed if \strong{at least one} statistic
+(e.g., Gnp, U3p, lpz) flags them as misfitting. This is stricter.
+\item \code{"intersection"}: A person is removed \strong{only if all} statistics flag them
 as misfitting. This is more lenient.
 }
 }
 
 \examples{
-\dontrun{
-# Assume 'mf' is the result of misfit_epmfd()
-
-# Remove anyone flagged by at least one statistic
-cl1 <- clean_epmfd(mf, criterion = "union")
-cl1$n_removed
-scale_obj <- scale_epmfd(cl1$raw)
-
-# Remove only those flagged by all statistics
-cl2 <- clean_epmfd(mf, criterion = "intersection")
-
-head(cl1$clean_data)
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\donttest{
+  # Example usage (not run during checks):
+  # Assume 'mf' is created by:
+  #   raw <- as_epmfd_raw(your_data)
+  #   sc  <- scale_epmfd(raw, method = "mokken")
+  #   mf  <- misfit_epmfd(sc, stats = "auto")
+  #
+  # Remove anyone flagged by at least one statistic (union):
+  # cl1 <- clean_epmfd(mf, criterion = "union")
+  # head(cl1$clean_data)
+  #
+  # Or require all selected stats (intersection):
+  # cl2 <- clean_epmfd(mf, criterion = "intersection")
 }
-
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=misfit_epmfd]{misfit_epmfd()}}, \code{\link[=scale_epmfd]{scale_epmfd()}}
