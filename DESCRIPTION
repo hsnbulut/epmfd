@@ -1,6 +1,6 @@
 Package: epmfd
 Title: Exploratory and Person/Item Misfit Diagnostics for Polytomous Data
-Version: 1.1.0
+Version: 1.0.6
 Authors@R: c(
     person("Hasan", "Bulut",
            email   = "hasan.bulut@omu.edu.tr",
