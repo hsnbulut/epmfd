@@ -12,6 +12,7 @@
 #'
 #' @param misfit An `epmfd_misfit` object returned by [misfit_epmfd()].
 #' @param criterion Character string, either `"union"` (default) or `"intersection"`.
+#' @param clean_item is a logical argument. If clean_item=TRUE, then the function can clean items. The defaul value is FALSE.
 #'
 #' @return An `epmfd_clean` list with:
 #' \itemize{
@@ -59,7 +60,8 @@
 #' }
 #' @export
 clean_epmfd <- function(misfit,
-                        criterion = c("union", "intersection")) {
+                        criterion = c("union", "intersection"),
+                        clean_item=FALSE) {
 
   stopifnot(inherits(misfit, "epmfd_misfit"))
   criterion <- match.arg(criterion)
@@ -95,8 +97,13 @@ clean_epmfd <- function(misfit,
   ## ---------------------------------------------------------------
   ## 2 – Clean data (only retained persons and kept items)
   ## ---------------------------------------------------------------
-  kept_items <- misfit$scaled$kept
-  raw_orig   <- misfit$scaled$raw
+  if(clean_item==TRUE){
+    kept_items <- misfit$scaled$kept
+    raw_orig   <- misfit$scaled$raw
+  } else if (clean_item==FALSE) {
+    kept_items <- misfit$scaled$items
+    raw_orig   <- misfit$scaled$raw
+  }
 
   clean_data <- raw_orig$data[fit_flag, kept_items, drop = FALSE]
   clean_id   <- raw_orig$id[fit_flag]

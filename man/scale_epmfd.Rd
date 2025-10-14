@@ -45,6 +45,7 @@ An object of class \code{epmfd_scaled}, a list containing:
 \item \code{Hi}: vector of item scalability coefficients (for
 \code{"mokken"})
 \item \code{H_thr}: scalability threshold used (for \code{"mokken"})
+\item \code{items}: the vector containing all items names.
 }
 }
 \description{

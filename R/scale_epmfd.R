@@ -34,6 +34,7 @@
 #'   \item \code{Hi}: vector of item scalability coefficients (for
 #'         \code{"mokken"})
 #'   \item \code{H_thr}: scalability threshold used (for \code{"mokken"})
+#'   \item \code{items}: the vector containing all items names.
 #' }
 #'
 #' @details
@@ -111,6 +112,7 @@ scale_epmfd <- function(object,
       model     = model,
       ai        = pars,
       a_thr     = a_thr,
+      items     = rownames(pars),
       model_fit = M2_results   # hata varsa NULL
     )
 
@@ -128,7 +130,8 @@ scale_epmfd <- function(object,
       kept    = kept,
       removed = removed,
       Hi      = Hi,
-      H_thr   = H_thr
+      H_thr   = H_thr,
+      items   = name
     )
   }
 

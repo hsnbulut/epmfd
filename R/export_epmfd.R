@@ -92,7 +92,7 @@
 #' }
 #' @export
 export_epmfd <- function(object,
-                         dir            = NULL,            # <— değişti
+                         dir            = NULL,
                          prefix         = NULL,
                          format         = c("csv", "xlsx", "sav"),
                          save_rds       = FALSE,

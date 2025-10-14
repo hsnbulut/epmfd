@@ -4,12 +4,14 @@
 \alias{clean_epmfd}
 \title{Remove misfitting persons from an epmfd_misfit object}
 \usage{
-clean_epmfd(misfit, criterion = c("union", "intersection"))
+clean_epmfd(misfit, criterion = c("union", "intersection"), clean_item = FALSE)
 }
 \arguments{
 \item{misfit}{An \code{epmfd_misfit} object returned by \code{\link[=misfit_epmfd]{misfit_epmfd()}}.}
 
 \item{criterion}{Character string, either \code{"union"} (default) or \code{"intersection"}.}
+
+\item{clean_item}{is a logical argument. If clean_item=TRUE, then the function can clean items. The defaul value is FALSE.}
 }
 \value{
 An \code{epmfd_clean} list with:
