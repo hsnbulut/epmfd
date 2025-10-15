@@ -48,18 +48,10 @@
 #'
 #' @seealso [load_epmfd()], [misfit_epmfd()], [plot.epmfd_scaled()]
 #'
-#' @examplesIf FALSE
-#' \donttest{
-#' # Example: scale raw data automatically
-#' raw <- load_epmfd(mydata, id_col = "ID", likert_levels = 4)
-#' sc1 <- scale_epmfd(raw, method = "auto")
-#'
-#' # Force Mokken analysis
-#' sc2 <- scale_epmfd(raw, method = "mokken", H_thr = 0.4)
-#'
-#' # Force GRM (mirt) analysis with stricter a-threshold
-#' sc3 <- scale_epmfd(raw, method = "mirt", a_thr = 0.7)
-#' }
+#' @examples
+#' library(epmfd)
+#' data<-load_epmfd(sampledata)
+#' scale_epmfd(data)
 #'
 #' @export
 scale_epmfd <- function(object,

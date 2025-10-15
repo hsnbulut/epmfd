@@ -66,19 +66,10 @@ compared to \code{H_thr}.
 }
 }
 \examples{
-\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-\donttest{
-# Example: scale raw data automatically
-raw <- load_epmfd(mydata, id_col = "ID", likert_levels = 4)
-sc1 <- scale_epmfd(raw, method = "auto")
+library(epmfd)
+data<-load_epmfd(sampledata)
+scale_epmfd(data)
 
-# Force Mokken analysis
-sc2 <- scale_epmfd(raw, method = "mokken", H_thr = 0.4)
-
-# Force GRM (mirt) analysis with stricter a-threshold
-sc3 <- scale_epmfd(raw, method = "mirt", a_thr = 0.7)
-}
-\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=load_epmfd]{load_epmfd()}}, \code{\link[=misfit_epmfd]{misfit_epmfd()}}, \code{\link[=plot.epmfd_scaled]{plot.epmfd_scaled()}}

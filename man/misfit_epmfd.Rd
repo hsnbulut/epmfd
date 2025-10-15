@@ -59,3 +59,12 @@ categories) across items. This function uses \code{object$raw$K} as the global
 design K and maps item responses to \strong{0..K-1} without compressing per-item
 gaps (unused categories are allowed and do not trigger an error).
 }
+\examples{
+library(epmfd)
+data<-load_epmfd(sampledata)
+scaling_data<-scale_epmfd(data)
+misfit_result<-misfit_epmfd(scaling_data)
+misfit_result
+plot_misfit(misfit_result,threeD=TRUE)
+
+}

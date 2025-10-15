@@ -43,6 +43,14 @@
 #' design K and maps item responses to **0..K-1** without compressing per-item
 #' gaps (unused categories are allowed and do not trigger an error).
 #'
+#' @examples
+#' library(epmfd)
+#' data<-load_epmfd(sampledata)
+#' scaling_data<-scale_epmfd(data)
+#' misfit_result<-misfit_epmfd(scaling_data)
+#' misfit_result
+#' plot_misfit(misfit_result,threeD=TRUE)
+#'
 #' @export
 misfit_epmfd <- function(object,
                          stats   = c("auto", "lpz", "Gnp", "U3p"),

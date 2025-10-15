@@ -43,21 +43,16 @@
 #'
 #' @seealso [misfit_epmfd()], [scale_epmfd()]
 #'
-#' @examplesIf FALSE
-#' \donttest{
-#'   # Example usage (not run during checks):
-#'   # Assume 'mf' is created by:
-#'   #   raw <- as_epmfd_raw(your_data)
-#'   #   sc  <- scale_epmfd(raw, method = "mokken")
-#'   #   mf  <- misfit_epmfd(sc, stats = "auto")
-#'   #
-#'   # Remove anyone flagged by at least one statistic (union):
-#'   # cl1 <- clean_epmfd(mf, criterion = "union")
-#'   # head(cl1$clean_data)
-#'   #
-#'   # Or require all selected stats (intersection):
-#'   # cl2 <- clean_epmfd(mf, criterion = "intersection")
-#' }
+#' @examples
+#'
+#' library(epmfd)
+#' data<-load_epmfd(sampledata)
+#' scaling_data<-scale_epmfd(data)
+#' misfit_result<-misfit_epmfd(scaling_data)
+#' clean_data<-clean_epmfd(misfit_result)
+#' head(clean_data$clean_data)
+#' dim(data$data)  # the dimension of raw data
+#' dim(clean_data$clean_data)  # the dimension of clean data
 #' @export
 clean_epmfd <- function(misfit,
                         criterion = c("union", "intersection"),

@@ -10,9 +10,9 @@ Authors@R: c(
            email   = "asiye.sengul@erdogan.edu.tr",
            role    = "aut",
            comment = c(ORCID = "0000-0001-5522-2514")))
-Description: Tools to identify and remove person misfit in polytomous
-    item-response data using either Mokken or a graded response model (GRM, via mirt).
-    Provides automatic thresholds, visual diagnostics (2D/3D), and export utilities.
+Description: Analysis of items and persons in data. To identify and remove person misfit in polytomous
+    item-response data using either 'mokken' or a graded response model (GRM, via 'mirt').
+    Provides automatic thresholds, visual diagnostics (2D/3D), and export utilities. 
     Methods build on Mokken scaling as in Mokken (1971, ISBN:9789027968821) and on the
     graded response model of Samejima (1969) <doi:10.1007/BF03372160>.
 License: GPL-3
